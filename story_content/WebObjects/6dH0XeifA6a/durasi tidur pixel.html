@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Durasi Tidur Anak 10-12 Tahun - Pixel Art Interaktif (Offline)</title>
+    <!-- MENGHILANGKAN SEMUA REFERENSI EKSTERNAL (CDN) -->
+    <style>
+        /* Menggunakan font monospaced dasar sebagai pengganti font eksternal 
+           untuk mempertahankan gaya seperti 'pixel' yang konsisten dan offline */
+        :root {
+            /* Palet Warna Cerah namun Tidak Mencolok */
+            --color-primary: #4CAF50; /* Hijau (Kesehatan) */
+            --color-secondary: #FFC107; /* Kuning (Cahaya/Bangun) */
+            --color-accent: #2196F3; /* Biru (Tidur/Tenang) */
+            --color-background: #E0F7FA; /* Biru Langit Muda */
+            --color-text: #191970; /* Biru Tua */
+            --color-error: #F44336; /* Merah (Peringatan) */
+            --font-pixel: 'Courier New', monospace; /* Font sistem pengganti */
+        }
+
+        body {
+            font-family: var(--font-pixel);
+            background-color: transparent; 
+            color: var(--color-text);
+            background-image: linear-gradient(135deg, #F0FFFF 0%, #B2EBF2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            box-sizing: border-box; /* Agar padding tidak menambah lebar total */
+        }
+
+        /* Kelas Utility Sederhana (Pengganti Tailwind) */
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .p-4 { padding: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .block { display: block; }
+
+        .container {
+            max-width: 800px;
+            width: 95%;
+            background-color: #FFFFFF;
+            border: 8px solid var(--color-text);
+            box-shadow: 12px 12px 0px 0px var(--color-primary);
+            padding: 30px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Gaya Typography & Layout */
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-base { font-size: 1rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+
+        .bg-blue-100 { background-color: #BBDEFB; }
+        .border-4 { border-width: 4px; }
+        .border-blue-900 { border-color: var(--color-text); }
+        .text-blue-800 { color: var(--color-accent); }
+        .text-yellow-800 { color: var(--color-secondary); }
+        .text-gray-700 { color: #4B5563; }
+
+        /* Gaya Pixel Art untuk Tombol */
+        .pixel-button {
+            background-color: var(--color-primary);
+            color: white;
+            border: 4px solid var(--color-text);
+            padding: 10px 15px;
+            font-size: 0.75rem; /* text-sm */
+            cursor: pointer;
+            box-shadow: 4px 4px 0px 0px #388E3C;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+        }
+
+        .pixel-button:hover {
+            box-shadow: 2px 2px 0px 0px #388E3C;
+            transform: translate(2px, 2px);
+        }
+
+        /* Gaya Pixel Art untuk Slider */
+        .slider-container input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 16px;
+            background: #bdbdbd;
+            border: 3px solid var(--color-text);
+            box-shadow: inset 2px 2px 0px 0px #9e9e9e;
+            margin-top: 10px;
+        }
+
+        .slider-container input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            background: var(--color-accent);
+            border: 4px solid var(--color-text);
+            cursor: pointer;
+            box-shadow: 2px 2px 0px 0px #1565C0;
+        }
+
+        /* Gaya untuk Kotak Pesan Feedback */
+        #feedbackLayer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .feedback-box {
+            background-color: var(--color-secondary);
+            border: 8px solid var(--color-text);
+            padding: 30px;
+            text-align: center;
+            /* Box-shadow awal akan di-override oleh JS */
+            box-shadow: 15px 15px 0px 0px var(--color-error); 
+            max-width: 90%;
+            animation: popUp 0.3s ease-out;
+        }
+
+        @keyframes popUp {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Gaya untuk Tampilan Durasi */
+        #durationDisplay {
+            font-size: 20px;
+            margin-top: 20px;
+            padding: 10px;
+            border: 4px solid var(--color-accent);
+            background-color: #BBDEFB;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 600px) {
+            .md\:text-2xl { font-size: 1.5rem; }
+            .md\:text-base { font-size: 1rem; }
+        }
+        @media (max-width: 599px) {
+            .container {
+                padding: 15px;
+                border-width: 4px;
+                box-shadow: 8px 8px 0px 0px var(--color-primary);
+            }
+            .feedback-box {
+                padding: 20px;
+                border-width: 4px;
+                box-shadow: 8px 8px 0px 0px var(--color-error);
+            }
+            .text-xl, .md\:text-2xl { font-size: 1.1rem; }
+            .text-lg { font-size: 1rem; }
+            .text-sm { font-size: 0.75rem; }
+            .text-xs { font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body class="selection:bg-yellow-300 selection:text-red-800">
+
+    <div class="container">
+        <h1 class="text-xl md:text-2xl font-bold mb-4 text-center">
+            PINTAR BERSAMA TIDUR: PANDUAN ANAK 10-12 TAHUN
+        </h1>
+        
+        <p class="text-sm md:text-base text-center mb-6">
+            Anak-anak usia 10-12 tahun butuh tidur **minimal 9 jam dan maksimal 11 jam**. Waktu tidur ideal adalah **sebelum pukul 22:00** untuk kesehatan terbaik.
+        </p>
+
+        <div class="bg-blue-100 p-4 border-4 border-blue-900 mb-6">
+            <h2 class="text-center text-lg mb-2">ATUR JADWAL TIDURMU!</h2>
+            <div class="space-y-6">
+
+                <!-- SLIDER MULAI TIDUR -->
+                <div>
+                    <label for="sleepTime" class="block text-sm mb-2">Jam Mulai Tidur (Waktu Malam)</label>
+                    <div class="slider-container">
+                        <input type="range" id="sleepTime" min="18" max="23" step="0.5" value="21" oninput="updateTime('sleep')">
+                    </div>
+                    <div id="sleepTimeValue" class="text-center font-bold text-lg mt-2 text-blue-800">21:00</div>
+                </div>
+                
+                <!-- SLIDER BANGUN TIDUR -->
+                <div>
+                    <label for="wakeTime" class="block text-sm mb-2">Jam Bangun (Waktu Pagi)</label>
+                    <div class="slider-container">
+                        <input type="range" id="wakeTime" min="5" max="9" step="0.5" value="6" oninput="updateTime('wake')">
+                    </div>
+                    <div id="wakeTimeValue" class="text-center font-bold text-lg mt-2 text-yellow-800">06:00</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAMPILAN DURASI -->
+        <div id="durationDisplay" class="text-center font-bold">
+            DURASI TIDUR: 9 jam 0 menit
+        </div>
+
+        <!-- TOMBOL CEK -->
+        <div class="text-center mt-6">
+            <button class="pixel-button" onclick="checkDuration()">
+                HITUNG & CEK HASIL
+            </button>
+        </div>
+
+        <p class="text-xs text-center mt-4 text-gray-700">
+            Geser slider untuk melihat berapa lama durasi tidurmu.
+        </p>
+    </div>
+
+    <!-- FEEDBACK LAYER (Modal/Pop-up) -->
+    <div id="feedbackLayer">
+        <div class="feedback-box">
+            <span id="feedbackMessage" class="block text-xl md:text-2xl font-bold mb-4"></span>
+            <button class="pixel-button" style="background-color: #6B7280; box-shadow: 4px 4px 0px 0px #4B5563;" onclick="closeFeedback()">
+                OKE, AKU PAHAM!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Ambil nilai variabel CSS dari :root sekali saja untuk menghindari SyntaxError di JavaScript.
+        const rootStyles = getComputedStyle(document.documentElement);
+        const COLORS = {
+            primary: rootStyles.getPropertyValue('--color-primary').trim(),
+            text: rootStyles.getPropertyValue('--color-text').trim(),
+            error: rootStyles.getPropertyValue('--color-error').trim(),
+        };
+        
+        // Fungsi untuk mengonversi nilai float (misalnya 21.5) menjadi format waktu (misalnya "21:30")
+        function formatTime(floatTime) {
+            const hours = Math.floor(floatTime);
+            const minutes = (floatTime - hours) * 60;
+            const hourStr = String(hours).padStart(2, '0');
+            const minuteStr = String(minutes).padStart(2, '0');
+            return `${hourStr}:${minuteStr}`;
+        }
+
+        // Fungsi untuk memperbarui tampilan waktu di bawah slider
+        function updateTime(type) {
+            const sleepSlider = document.getElementById('sleepTime');
+            const wakeSlider = document.getElementById('wakeTime');
+            
+            const sleepValue = parseFloat(sleepSlider.value);
+            const wakeValue = parseFloat(wakeSlider.value);
+            
+            if (type === 'sleep') {
+                document.getElementById('sleepTimeValue').textContent = formatTime(sleepValue);
+            } else if (type === 'wake') {
+                document.getElementById('wakeTimeValue').textContent = formatTime(wakeValue);
+            }
+
+            calculateDuration(sleepValue, wakeValue);
+        }
+
+        // Fungsi utama untuk menghitung durasi tidur
+        function calculateDuration(sleepValue, wakeValue) {
+            let durationHours;
+
+            // Jam tidur berada di hari sebelumnya, jam bangun di hari berikutnya.
+            durationHours = (24 - sleepValue) + wakeValue;
+
+            // Memisahkan jam dan menit
+            const hours = Math.floor(durationHours);
+            const minutes = Math.round((durationHours - hours) * 60);
+
+            const durationDisplay = document.getElementById('durationDisplay');
+            durationDisplay.textContent = `DURASI TIDUR: ${hours} jam ${minutes} menit`;
+            
+            // Tambahkan warna dinamis berdasarkan durasi (hanya cek minimum 9 jam)
+            if (durationHours < 9) {
+                durationDisplay.style.backgroundColor = '#FFCDD2'; /* Merah Muda - Kurang */
+                durationDisplay.style.borderColor = COLORS.error; 
+            } else {
+                durationDisplay.style.backgroundColor = '#C8E6C9'; /* Hijau Muda - Cukup */
+                durationDisplay.style.borderColor = COLORS.primary;
+            }
+        }
+
+        // Fungsi untuk menampilkan feedback layer dengan aturan baru
+        function checkDuration() {
+            const sleepSlider = document.getElementById('sleepTime');
+            const wakeSlider = document.getElementById('wakeTime');
+            const sleepValue = parseFloat(sleepSlider.value);
+            const wakeValue = parseFloat(wakeSlider.value);
+            
+            const durationHours = (24 - sleepValue) + wakeValue;
+            
+            const hours = Math.floor(durationHours);
+            const minutes = Math.round((durationHours - hours) * 60);
+            
+            const feedbackLayer = document.getElementById('feedbackLayer');
+            const feedbackBox = document.querySelector('.feedback-box');
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            
+            let status = 'ideal';
+            let message = '';
+
+            // 1. Cek Durasi Kurang (< 9 jam) - Prioritas tertinggi untuk peringatan
+            if (durationHours < 9.0) {
+                status = 'insufficient';
+                message = `Durasi tidurmu hanya ${hours} jam ${minutes} menit. Durasi ini kurang! Tubuhmu butuh istirahat lebih lama (Minimal 9 jam) untuk tumbuh pintar!`;
+            } 
+            // 2. Cek Tidur Terlalu Malam (> 22:00 atau jam 10 malam)
+            else if (sleepValue > 22.0) {
+                status = 'late';
+                message = `Perhatian! Kamu tidur terlalu malam (${formatTime(sleepValue)}). Kualitas tidur terbaik adalah sebelum jam 10 malam. Coba tidur lebih awal!`;
+            } 
+            // 3. Cek Durasi Terlalu Banyak (> 11 jam)
+            else if (durationHours > 11.0) {
+                status = 'oversleep';
+                message = `Durasi tidurmu (${hours} jam ${minutes} menit) terlalu lama! Tidur berlebihan (lebih dari 11 jam) bisa membuat tubuh lesu. Target idealnya 9-11 jam.`;
+            } 
+            // 4. Ideal (9 <= durationHours <= 11 AND sleepValue <= 22:00)
+            else {
+                status = 'ideal';
+                message = `Hebat! Durasi tidurmu ${hours} jam ${minutes} menit. Itu waktu yang pas untuk anak pintar sepertimu!`;
+            }
+            
+            // Atur tampilan pop-up berdasarkan status
+            if (status === 'ideal') {
+                // Skenario Positif/Ideal
+                feedbackBox.style.backgroundColor = COLORS.primary; /* Hijau */
+                feedbackBox.style.boxShadow = `15px 15px 0px 0px ${COLORS.text}`;
+            } else {
+                // Skenario Peringatan/Non-ideal (Kurang, Terlalu Malam, atau Terlalu Banyak)
+                feedbackBox.style.backgroundColor = COLORS.error; /* Merah */
+                feedbackBox.style.boxShadow = `15px 15px 0px 0px ${COLORS.text}`;
+            }
+
+            feedbackMessage.textContent = message;
+            feedbackLayer.style.display = 'flex';
+        }
+
+        // Fungsi untuk menutup feedback layer
+        function closeFeedback() {
+            document.getElementById('feedbackLayer').style.display = 'none';
+        }
+
+        // Inisialisasi tampilan saat halaman dimuat
+        window.onload = () => {
+            // Atur nilai awal berdasarkan slider
+            updateTime('sleep'); 
+            updateTime('wake');
+        };
+    </script>
+</body>
+</html>
