@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Geser Gambar</title>
+    <style>
+        /* --- CSS RESET & BASIC STYLES --- */
+        body {
+            margin: 0;
+            padding: 0;
+            /* Background transparan sesuai permintaan. 
+               Jika dibuka di browser biasa, mungkin terlihat putih/kosong. 
+               Ini ideal untuk overlay. */
+            background-color: transparent; 
+            color: #ffffff;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overscroll-behavior: none;
+        }
+
+        /* MODIFIKASI DI SINI: Ukuran font diperbesar dan warna dibuat solid */
+        h1 { 
+            margin-top: 2rem; 
+            margin-bottom: 1.5rem; 
+            color: #3b82f6; /* Warna biru solid yang lebih tegas */
+            font-size: 3rem; /* Ukuran font diperbesar */
+            text-align: center; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); /* Shadow sedikit dipertegas agar kontras */
+            font-weight: 800; /* Membuat font lebih tebal/solid */
+        }
+        
+        /* --- CONTROLS --- */
+        .controls {
+            width: 100%;
+            max-width: 800px;
+            /* Background semi-transparan agar tombol tetap terlihat jelas */
+            background-color: rgba(31, 41, 55, 0.9);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+            border: 1px solid #374151;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 4px; }
+
+        select {
+            background-color: #374151;
+            color: white;
+            padding: 8px 12px;
+            border: 1px solid #4b5563;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-start { background-color: #16a34a; color: white; flex-grow: 1; }
+        .btn-start:hover { background-color: #15803d; }
+        .btn-start:disabled { background-color: #4b5563; cursor: not-allowed; }
+
+        .btn-toggle { 
+            background-color: #4b5563; 
+            color: white; 
+            padding: 10px; 
+            width: 42px; /* Fixed width for icon */
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        .btn-toggle:hover { background-color: #374151; }
+        
+        /* Tambahan Style untuk tombol bantuan */
+        .btn-help {
+            background-color: #f59e0b; /* Warna Oranye */
+            color: white;
+        }
+        .btn-help:hover { background-color: #d97706; }
+
+        /* Tambahan Style untuk list cara main */
+        .help-list {
+            text-align: left;
+            padding-left: 20px;
+            margin: 15px 0;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+        .help-list li {
+            margin-bottom: 8px;
+        }
+
+        /* --- GAME BOARD --- */
+        .stats {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding: 0 10px;
+            box-sizing: border-box;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 16 / 9;
+            background-color: transparent; 
+            border: 2px solid rgba(55, 65, 81, 0.5);
+            position: relative;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin: 0 auto;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .tile {
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+            position: absolute;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 2px 2px 4px black;
+        }
+
+        .tile:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+        }
+
+        .empty-tile {
+            background: transparent !important;
+            border: none !important;
+            cursor: default;
+        }
+
+        .error-msg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #ef4444;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1f2937;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            border: 1px solid #3b82f6;
+            max-width: 300px;
+        }
+        .btn-close {
+            background: #2563eb; color: white;
+            width: 100%; margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Puzzle Geser Gambar</h1>
+    </header>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Kesulitan</label>
+            <select id="gridSize">
+                <option value="3">Mudah (3x3)</option>
+                <option value="4" selected>Sedang (4x4)</option>
+                <option value="5">Sulit (5x5)</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 5px; flex-grow: 1;">
+            <button id="shuffleBtn" class="btn-start">Acak / Mulai</button>
+            <button id="helpBtn" class="btn-toggle btn-help" title="Cara Bermain">?</button>
+            <button id="toggleNumbersBtn" class="btn-toggle" title="Nomor">i</button>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div style="color: #93c5fd;">Langkah: <span id="moveCount" style="color: white; font-weight: bold;">0</span></div>
+        <div id="statusMsg" style="color: #fcd34d;">Siap bermain</div>
+    </div>
+
+    <div class="game-container" id="board">
+        <div id="loadingMsg" class="error-msg" style="display:block; color:white;">Memuat Gambar...</div>
+        <div id="errorDisplay" class="error-msg">
+            Gambar tidak ditemukan!<br>
+            <small>Pastikan nama file di kode sesuai.</small>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="winModal" class="modal">
+        <div class="modal-content">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎉</div>
+            <h2 style="margin:0 0 0.5rem 0;">Selamat!</h2>
+            <p>Selesai dalam <span id="finalMoves" style="color: #60a5fa; font-weight: bold;">0</span> langkah.</p>
+            <button class="btn-close" onclick="document.getElementById('winModal').style.display='none'">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Help Modal (Baru) -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2 style="margin:0 0 1rem 0; color: #f59e0b;">Cara Bermain 🎮</h2>
+            <ul class="help-list">
+                <li>Tugasmu adalah merapikan gambar yang teracak.</li>
+                <li>Cari kotak yang <strong>kosong</strong> (tidak ada gambarnya).</li>
+                <li>Klik kotak di <strong>sebelah</strong> kotak kosong untuk menggesernya.</li>
+                <li>Terus geser kotak-kotak itu sampai gambarnya utuh lagi!</li>
+                <li>Bingung? Tekan tombol <strong>'i'</strong> untuk melihat nomor urutan.</li>
+            </ul>
+            <button class="btn-close" style="background-color: #f59e0b;" onclick="document.getElementById('helpModal').style.display='none'">Siap Main!</button>
+        </div>
+    </div>
+
+    <script>
+        // ========================================================
+        // 🛠️ PENGATURAN GAMBAR (EDIT BAGIAN INI)
+        // ========================================================
+        
+        // Masukkan nama file gambar Anda di bawah ini (harus di folder yang sama).
+        const TARGET_IMAGE = "puzzle.png"; 
+
+        // ========================================================
+
+        const board = document.getElementById('board');
+        const gridSizeSelect = document.getElementById('gridSize');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const moveCountSpan = document.getElementById('moveCount');
+        const statusMsg = document.getElementById('statusMsg');
+        const winModal = document.getElementById('winModal');
+        const helpModal = document.getElementById('helpModal');
+        const helpBtn = document.getElementById('helpBtn');
+        const toggleNumbersBtn = document.getElementById('toggleNumbersBtn');
+        const errorDisplay = document.getElementById('errorDisplay');
+        const loadingMsg = document.getElementById('loadingMsg');
+
+        let gridSize = 4;
+        let tiles = [];
+        let moves = 0;
+        let isPlaying = false;
+        let isNumbersVisible = true;
+        
+        const imgObj = new Image();
+        
+        window.onload = function() {
+            imgObj.src = TARGET_IMAGE;
+            
+            imgObj.onload = function() {
+                loadingMsg.style.display = 'none';
+                initGame();
+            };
+
+            imgObj.onerror = function() {
+                loadingMsg.style.display = 'none';
+                errorDisplay.style.display = 'block';
+                statusMsg.textContent = "Mode Demo (Gambar tidak ditemukan)";
+                useFallbackImage(); 
+            };
+        };
+
+        function useFallbackImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280; canvas.height = 720;
+            const ctx = canvas.getContext('2d');
+            const grd = ctx.createLinearGradient(0, 0, 1280, 720);
+            grd.addColorStop(0, "#2563eb");
+            grd.addColorStop(1, "#9333ea");
+            ctx.fillStyle = grd;
+            ctx.fillRect(0,0, 1280, 720);
+            ctx.fillStyle = "white";
+            ctx.font = "bold 60px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Puzzle Offline", 640, 360);
+            
+            imgObj.src = canvas.toDataURL();
+            imgObj.onload = function() {
+                errorDisplay.style.display = 'none';
+                initGame();
+            }
+        }
+
+        gridSizeSelect.addEventListener('change', () => {
+            gridSize = parseInt(gridSizeSelect.value);
+            initGame();
+        });
+        
+        shuffleBtn.addEventListener('click', shuffleTiles);
+
+        // Event Listener untuk tombol bantuan
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'flex';
+        });
+        
+        toggleNumbersBtn.addEventListener('click', () => {
+            isNumbersVisible = !isNumbersVisible;
+            updateNumberVisibility();
+        });
+
+        function updateNumberVisibility() {
+            const tileEls = document.querySelectorAll('.tile');
+            tileEls.forEach(el => {
+                if(!el.classList.contains('empty-tile')) {
+                    el.style.color = isNumbersVisible ? 'rgba(255,255,255,0.9)' : 'transparent';
+                    el.style.textShadow = isNumbersVisible ? '2px 2px 4px black' : 'none';
+                }
+            });
+        }
+
+        function initGame() {
+            board.innerHTML = '';
+            tiles = [];
+            moves = 0;
+            moveCountSpan.textContent = moves;
+            isPlaying = false;
+            statusMsg.textContent = "Siap bermain";
+            statusMsg.style.color = "#fcd34d";
+            winModal.style.display = 'none';
+
+            const tileCount = gridSize * gridSize;
+            const tileWidth = 100 / gridSize;
+            const tileHeight = 100 / gridSize;
+
+            for (let i = 0; i < tileCount; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                
+                const row = Math.floor(i / gridSize);
+                const col = i % gridSize;
+
+                tile.style.width = `${tileWidth}%`;
+                tile.style.height = `${tileHeight}%`;
+                tile.style.left = `${col * tileWidth}%`;
+                tile.style.top = `${row * tileHeight}%`;
+
+                if (i === tileCount - 1) {
+                    tile.classList.add('empty-tile');
+                } else {
+                    tile.style.backgroundImage = `url(${imgObj.src})`;
+                    tile.style.backgroundSize = `${gridSize * 100}% ${gridSize * 100}%`;
+                    tile.style.backgroundPosition = `${col * (100 / (gridSize - 1))}% ${row * (100 / (gridSize - 1))}%`;
+                    tile.textContent = i + 1;
+                }
+
+                tile.onclick = () => moveTile(i);
+
+                tiles.push({
+                    element: tile,
+                    currentIndex: i,
+                    solvedIndex: i
+                });
+
+                board.appendChild(tile);
+            }
+            updateNumberVisibility();
+        }
+
+        function getCoordinates(index) {
+            return {
+                row: Math.floor(index / gridSize),
+                col: index % gridSize
+            };
+        }
+
+        function moveTile(originalIndex) {
+            if (!isPlaying && moves > 0) return;
+
+            const tileObj = tiles[originalIndex];
+            const currentIdx = tileObj.currentIndex;
+            const emptyTileObj = tiles[tiles.length - 1];
+            const emptyIdx = emptyTileObj.currentIndex;
+
+            const currentPos = getCoordinates(currentIdx);
+            const emptyPos = getCoordinates(emptyIdx);
+            const distance = Math.abs(currentPos.row - emptyPos.row) + Math.abs(currentPos.col - emptyPos.col);
+
+            if (distance === 1) {
+                const tempIndex = tileObj.currentIndex;
+                tileObj.currentIndex = emptyIdx;
+                emptyTileObj.currentIndex = tempIndex;
+
+                updateTilePosition(tileObj);
+                updateTilePosition(emptyTileObj);
+
+                if (isPlaying) {
+                    moves++;
+                    moveCountSpan.textContent = moves;
+                    checkWin();
+                }
+            }
+        }
+
+        function updateTilePosition(tileObj) {
+            const tileWidth = 100 / gridSize;
+            const tileHeight = 100 / gridSize;
+            const row = Math.floor(tileObj.currentIndex / gridSize);
+            const col = tileObj.currentIndex % gridSize;
+            
+            tileObj.element.style.left = `${col * tileWidth}%`;
+            tileObj.element.style.top = `${row * tileHeight}%`;
+        }
+
+        function shuffleTiles() {
+            moves = 0;
+            moveCountSpan.textContent = moves;
+            isPlaying = true;
+            statusMsg.textContent = "Sedang bermain...";
+            statusMsg.style.color = "#4ade80";
+
+            let lastEmptyIdx = tiles[tiles.length - 1].currentIndex;
+            const totalShuffles = gridSize * 30;
+
+            for (let i = 0; i < totalShuffles; i++) {
+                const emptyPos = getCoordinates(lastEmptyIdx);
+                const neighbors = [];
+
+                if (emptyPos.row > 0) neighbors.push(lastEmptyIdx - gridSize);
+                if (emptyPos.row < gridSize - 1) neighbors.push(lastEmptyIdx + gridSize);
+                if (emptyPos.col > 0) neighbors.push(lastEmptyIdx - 1);
+                if (emptyPos.col < gridSize - 1) neighbors.push(lastEmptyIdx + 1);
+
+                const randomNeighborIdx = neighbors[Math.floor(Math.random() * neighbors.length)];
+                const tileToSwap = tiles.find(t => t.currentIndex === randomNeighborIdx);
+
+                const temp = tileToSwap.currentIndex;
+                tileToSwap.currentIndex = lastEmptyIdx;
+                tiles[tiles.length - 1].currentIndex = temp;
+
+                lastEmptyIdx = randomNeighborIdx;
+            }
+
+            tiles.forEach(t => updateTilePosition(t));
+        }
+
+        function checkWin() {
+            let isWin = true;
+            for (let t of tiles) {
+                if (t.currentIndex !== t.solvedIndex) {
+                    isWin = false;
+                    break;
+                }
+            }
+
+            if (isWin) {
+                isPlaying = false;
+                statusMsg.textContent = "Selesai!";
+                statusMsg.style.color = "#60a5fa";
+                document.getElementById('finalMoves').textContent = moves;
+                setTimeout(() => {
+                    winModal.style.display = 'flex';
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>
