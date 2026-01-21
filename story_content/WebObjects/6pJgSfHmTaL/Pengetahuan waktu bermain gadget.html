@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Waktu Layar (Offline Pixel Art)</title>
+    
+    <style>
+        /* --- OFFLINE CUSTOM STYLES (Menggantikan Tailwind) --- */
+        
+        /* Gaya dasar untuk menciptakan tampilan pixel/blocky */
+        body {
+            font-family: 'Courier New', Courier, monospace; /* Font aman sistem untuk nuansa blocky */
+            background-color: #4CAF50; /* Hijau pixelated */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px; /* p-4 */
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px; /* max-w-lg */
+            background-color: white;
+            padding: 24px; /* p-6 */
+            text-align: center;
+        }
+
+        /* Custom Pixel Box Styles */
+        .pixel-box {
+            border: 4px solid #1A1A1A;
+            border-radius: 8px;
+            box-shadow: 6px 6px 0px 0px #1A1A1A; /* Efek shadow tebal */
+        }
+
+        /* Custom Pixel Button Styles */
+        .pixel-button {
+            border: 3px solid #1A1A1A;
+            border-radius: 4px;
+            box-shadow: 4px 4px 0px 0px #1A1A1A;
+            transition: all 0.1s ease-in-out;
+            font-weight: bold;
+            padding: 12px 24px; /* py-3 px-6 */
+            font-size: 1.25rem; /* text-xl */
+            width: 100%;
+            cursor: pointer;
+        }
+        .pixel-button:active {
+            box-shadow: 2px 2px 0px 0px #1A1A1A;
+            transform: translate(2px, 2px);
+        }
+
+        /* Gaya khusus untuk slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 15px;
+            background: #FFEB3B; /* Kuning cerah */
+            border: 3px solid #1A1A1A;
+            border-radius: 5px;
+            box-shadow: 3px 3px 0px 0px #1A1A1A;
+        }
+
+        /* Thumb (tombol geser) */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 25px;
+            width: 25px;
+            border-radius: 4px;
+            background: #E91E63; /* Merah muda */
+            border: 3px solid #1A1A1A;
+            box-shadow: 3px 3px 0px 0px #1A1A1A;
+            cursor: pointer;
+        }
+
+        /* Modal Background */
+        .modal-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Gaya untuk gambar ilustrasi pixel (placeholder) */
+        .pixel-illustration {
+            font-size: 5rem;
+            line-height: 1;
+            text-shadow: 4px 4px #000;
+            margin-bottom: 1rem;
+        }
+
+        /* Utility Spacing and Colors */
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-8 { padding: 2rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .text-5xl { font-size: 3rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-white { color: white; }
+        .text-gray-800 { color: #1f2937; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-500 { color: #6b7280; }
+        .text-blue-800 { color: #1e40af; }
+        .text-blue-900 { color: #1e3a8a; }
+        .text-red-800 { color: #991b1b; }
+        .bg-blue-200 { background-color: #bfdbfe; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .bg-green-500 { background-color: #10b981; }
+        .bg-green-600:hover { background-color: #059669; }
+        .bg-yellow-400 { background-color: #facc15; }
+        .bg-yellow-500:hover { background-color: #f59e0b; }
+        .bg-red-600 { background-color: #dc2626; } /* Warna untuk modal salah */
+        .bg-green-500 { background-color: #10b981; } /* Warna untuk modal benar */
+        .rounded-lg { border-radius: 0.5rem; }
+        .inline-block { display: inline-block; }
+        .block { display: block; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-extrabold { font-weight: 800; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container pixel-box">
+
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">🎮 Cek Durasi Layar 🕒</h1>
+        <p class="text-normal text-gray-600 mb-6">Atur berapa lama kamu menggunakan gadget hari ini.</p>
+
+        <!-- Display Waktu Saat Ini -->
+        <div class="bg-blue-200 p-4 mb-6 pixel-box inline-block">
+            <p class="text-xl font-bold text-blue-800">Waktu yang Kamu Atur:</p>
+            <p id="time-display" class="text-5xl font-extrabold text-blue-900 mt-1">0 Jam</p>
+        </div>
+
+        <!-- Slider Input -->
+        <div class="mb-8 p-4 bg-gray-100 rounded-lg">
+            <label for="screen-time-slider" class="block text-left font-semibold mb-3 text-gray-700">Geser untuk Atur Waktu (0 - 4 Jam)</label>
+            <input type="range" id="screen-time-slider" min="0" max="240" value="0" step="5">
+            <p class="text-sm text-right text-gray-500 mt-2">120 menit = 2 jam</p>
+        </div>
+        
+        <!-- Tombol Cek -->
+        <button id="check-button" class="pixel-button bg-green-500 hover:bg-green-600 text-white">
+            CEK WAKTUKU!
+        </button>
+
+    </div>
+
+    <!-- Feedback Layer (Modal) -->
+    <div id="feedback-modal" class="modal-background hidden">
+        <div id="modal-content" class="pixel-box p-8 w-11/12 max-w-md" style="animation: bounce 0.5s ease-in-out infinite alternate;">
+            <p class="pixel-illustration">🚨</p>
+            <h2 class="text-2xl font-bold text-white mb-4" id="modal-title"></h2>
+            <p class="text-lg text-white mb-6" id="modal-message"></p>
+            <button id="close-modal" class="pixel-button bg-yellow-400 hover:bg-yellow-500 text-red-800">
+                COBA LAGI
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('screen-time-slider');
+        const timeDisplay = document.getElementById('time-display');
+        const checkButton = document.getElementById('check-button');
+        const modal = document.getElementById('feedback-modal');
+        const closeModalButton = document.getElementById('close-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalContent = document.getElementById('modal-content');
+
+        const MAX_SCREEN_TIME_MINUTES = 120; // 2 jam untuk anak SD
+
+        // Fungsi untuk mengkonversi menit menjadi format Jam dan Menit
+        function formatTime(minutes) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            if (h === 0 && m === 0) return "0 Jam";
+            if (h > 0 && m === 0) return `${h} Jam`;
+            if (h === 0 && m > 0) return `${m} Menit`;
+            return `${h} Jam ${m} Menit`;
+        }
+
+        // 1. Update tampilan saat slider digeser
+        slider.addEventListener('input', (event) => {
+            const minutes = parseInt(event.target.value);
+            timeDisplay.textContent = formatTime(minutes);
+        });
+
+        // 2. Logika Cek Waktu Layar
+        checkButton.addEventListener('click', () => {
+            const minutes = parseInt(slider.value);
+            
+            // Tampilkan modal
+            modal.classList.remove('hidden');
+
+            // Reset kelas modal content
+            modalContent.className = 'pixel-box p-8 w-11/12 max-w-md';
+
+            if (minutes > MAX_SCREEN_TIME_MINUTES) {
+                // Waktu Terlalu Banyak
+                modalTitle.textContent = "Waktu Layarmu Terlalu Banyak!";
+                modalMessage.textContent = "2 Jam sudah cukup. Waktu layarmu melebihi batas aman. Coba lagi atur waktunya menjadi 2 jam atau kurang!";
+                modalContent.classList.add('bg-red-600');
+                closeModalButton.textContent = "COBA LAGI";
+            } else {
+                // Waktu Aman/Ideal
+                modalTitle.textContent = "HEBAT! Waktumu Aman!";
+                modalMessage.textContent = "Waktu layar kamu sudah ideal. Sekarang saatnya bermain, bergerak, dan tidur nyenyak!";
+                modalContent.classList.add('bg-green-500');
+                closeModalButton.textContent = "LANJUT";
+            }
+        });
+
+        // 3. Menutup Modal
+        closeModalButton.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        
+        // Inisialisasi tampilan awal
+        timeDisplay.textContent = formatTime(0);
+
+        // Tambahkan keyframe untuk animasi bounce (agar offline)
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `
+            @keyframes bounce {
+                0% { transform: scale(1); }
+                100% { transform: scale(1.02); }
+            }
+            #modal-content {
+                animation: bounce 0.8s ease-in-out infinite alternate;
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    </script>
+
+</body>
+</html>
