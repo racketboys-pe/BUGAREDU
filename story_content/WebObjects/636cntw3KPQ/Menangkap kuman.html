@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Kuman Interaktif</title>
+    
+    <!-- Semua CDN (Tailwind & Google Fonts) telah dihapus untuk mode Full Offline -->
+
+    <style>
+        /* Menggunakan font sistem untuk mode offline */
+        body {
+            font-family: Arial, Helvetica, sans-serif; 
+            background-color: #f0f4f8; /* Warna latar belakang lembut */
+            padding: 16px; /* p-4 */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Kontainer Utama (Card) */
+        .main-card {
+            width: 100%;
+            max-width: 896px; /* max-w-4xl */
+            background-color: white;
+            padding: 40px; /* p-10 */
+            border-radius: 12px; /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* shadow-2xl */
+        }
+        
+        .title {
+            font-size: 2.25rem; /* text-4xl */
+            font-weight: 900; /* font-black */
+            text-align: center;
+            margin-bottom: 24px; /* mb-6 */
+            color: #1f2937; /* text-gray-800 */
+        }
+
+        /* Menu Utama */
+        #main-menu {
+            text-align: center;
+            margin-top: 24px;
+        }
+        #main-menu p {
+            color: #4b5563; /* text-gray-600 */
+            font-size: 1.125rem; /* text-lg */
+            margin-bottom: 20px;
+        }
+        #main-menu h2 {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700; /* font-bold */
+            color: #374151; /* text-gray-700 */
+            padding-top: 16px; /* pt-4 */
+            margin-bottom: 16px;
+        }
+        .difficulty-options {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px; /* gap-4 */
+        }
+
+        /* Kelas untuk kuman/virus */
+        .germ {
+            position: absolute;
+            width: 60px; /* Ukuran default kuman */
+            height: 60px;
+            cursor: pointer;
+            transition: opacity 0.3s ease-out, transform 0.1s;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            user-select: none;
+            display: block;
+            opacity: 1; 
+            animation: pulse 1.5s infinite;
+        }
+        
+        .germ:active {
+            transform: scale(0.9);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Kontainer Utama Game (untuk menjaga rasio 16:9) */
+        .game-area-wrapper {
+            width: 100%;
+            max-width: 1000px; 
+            margin: 0 auto;
+            position: relative;
+            padding-bottom: 56.25%; /* Rasio 16:9 */
+            height: 0;
+            background-color: #cbd5e1;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            border-radius: 1rem;
+            overflow: hidden;
+            background-image: url('tangankotor.png'); 
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: soft-light;
+        }
+
+        .player-area {
+            flex: 1;
+            position: relative;
+            border: 2px solid #334155;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .player-area:first-child {
+            border-right: none;
+        }
+
+        .fade-out {
+            opacity: 0;
+        }
+
+        /* Control Bar & Score Board Styling */
+        .control-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px; /* mb-4 */
+            padding: 12px; /* p-3 */
+            background-color: #f3f4f6; /* bg-gray-100 */
+            border-radius: 8px; /* rounded-lg */
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06); /* shadow-inner */
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .score-card {
+            padding: 12px;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+        }
+        .score-card p:first-child { color: #4b5563; font-size: 0.875rem; font-weight: 600; }
+        .score-card p:last-child { font-size: 2.25rem; font-weight: 900; }
+        .score-card.p1 { background-color: #d1fae5; border-color: #10b981; } /* bg-green-100, border-green-500 */
+        .score-card.p1 p:last-child { color: #047857; } /* text-green-700 */
+        .score-card.p2 { background-color: #f3e8ff; border-color: #9333ea; } /* bg-purple-100, border-purple-500 */
+        .score-card.p2 p:last-child { color: #6d28d9; } /* text-purple-700 */
+        
+        /* Game Over Message */
+        #game-message {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        #game-message > div {
+            background-color: white;
+            padding: 48px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 448px;
+            width: 90%;
+            /* Animasi perlu didefinisikan secara manual jika tidak menggunakan Tailwind */
+        }
+        
+        /* Tombol dengan styling keren */
+        .game-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+        }
+
+        .game-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background-color: #3b82f6; /* Biru */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        .btn-secondary {
+            background-color: #f97316; /* Jingga */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #ea580c;
+        }
+
+        /* Responsif untuk mobile */
+        @media (min-width: 768px) {
+            .difficulty-options {
+                flex-direction: row;
+            }
+        }
+        @media (max-width: 767px) {
+            .main-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex flex-col items-center">
+
+    <!-- Kontainer Utama (Card) -->
+    <div class="main-card">
+
+        <h1 class="title">
+            <span style="font-size: 1.5rem; margin-right: 4px; color: #ef4444;">🦠</span> Game Kuman Interaktif <span style="font-size: 1.5rem; margin-left: 4px; color: #10b981;">🧼</span>
+        </h1>
+
+        <!-- Area Menu Utama -->
+        <div id="main-menu">
+            <p>Latih kecepatanmu membersihkan kuman (virus & bakteri) sebelum waktunya habis! Ajak temanmu bermain bersama!</p>
+
+            <div class="difficulty-options">
+                <h2>Pilih Tingkat Kesulitan</h2>
+                <div class="flex flex-col md:flex-row justify-center gap-4">
+                    <button class="game-button btn-primary" style="width: 100%;" onclick="startGame('Lambat')">Lambat</button>
+                    <button class="game-button btn-secondary" style="width: 100%;" onclick="startGame('Sedang')">Sedang</button>
+                    <button class="game-button btn-primary" style="background-color: #dc2626; width: 100%;" onclick="startGame('Cepat')">Cepat</button>
+                </div>
+            </div>
+
+            <button class="game-button" style="background-color: #6b7280; color: white; margin-top: 24px;" onclick="showInstructions()">
+                <span style="margin-right: 8px;">💡</span> Petunjuk Permainan
+            </button>
+        </div>
+
+        <!-- Area Petunjuk -->
+        <div id="instructions" class="hidden" style="text-align: left; padding: 24px; background-color: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-bottom: 16px;">Petunjuk Permainan</h2>
+            <ul style="list-style: disc; padding-left: 20px; color: #374151; line-height: 1.5;">
+                <li>**Tujuan:** Klik kuman (virus/bakteri) yang muncul di area tangan kotor sebelum hilang dengan sendirinya (simulasi mencuci tangan).</li>
+                <li>**Mode:** Dua pemain dapat bermain secara bersamaan, masing-masing di area layar mereka sendiri.</li>
+                <li>**Skor:** Setiap kuman yang berhasil diklik akan menambah skor Anda.</li>
+                <li>**Waktu:** Anda memiliki 30 detik (waktu cuci tangan yang ideal) untuk membersihkan kuman sebanyak-banyaknya.</li>
+                <li>**Tingkat Kesulitan:**
+                    <ul style="list-style: circle; padding-left: 20px; margin-top: 5px;">
+                        <li>**Lambat:** Kuman muncul perlahan dan bertahan lama.</li>
+                        <li>**Sedang:** Kecepatan dan waktu bertahan kuman seimbang.</li>
+                        <li>**Cepat:** Kuman muncul dengan cepat dan menghilang dengan sangat cepat!</li>
+                    </ul>
+                </li>
+            </ul>
+            <button class="game-button btn-primary" style="margin-top: 24px;" onclick="showMenu()">
+                <span style="margin-right: 8px;">⬅️</span> Kembali ke Menu Utama
+            </button>
+        </div>
+        
+        <!-- Area Game -->
+        <div id="game-container" class="hidden">
+            <div class="control-bar">
+                <div style="text-align: left;">
+                    <p style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Level:</p>
+                    <p id="current-difficulty" style="font-size: 1.25rem; font-weight: 700; color: #2563eb;"></p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.875rem; font-weight: 600; color: #6b7280;">Waktu Tersisa:</p>
+                    <p id="game-timer" style="font-size: 1.875rem; font-weight: 900; color: #ef4444;">30</p>
+                </div>
+                <button class="game-button" style="background-color: #6b7280; color: white; font-size: 0.875rem;" onclick="showMenu()">
+                    <span style="margin-right: 4px;">🏠</span> Menu Utama
+                </button>
+            </div>
+
+            <!-- Papan Skor -->
+            <div class="score-board">
+                <div class="score-card p1">
+                    <p>Skor Pemain 1</p>
+                    <p id="score-p1">0</p>
+                </div>
+                <div class="score-card p2">
+                    <p>Skor Pemain 2</p>
+                    <p id="score-p2">0</p>
+                </div>
+            </div>
+
+            <!-- Area Permainan (16:9 Wrapper) -->
+            <div class="game-area-wrapper">
+                <div class="game-area">
+                    <!-- Area Pemain 1 -->
+                    <div id="player-area-1" class="player-area" data-player="1">
+                        <span style="position: absolute; top: 8px; left: 8px; color: white; background-color: #16a34a; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); opacity: 0.8;">P1</span>
+                    </div>
+                    <!-- Area Pemain 2 -->
+                    <div id="player-area-2" class="player-area" data-player="2">
+                        <span style="position: absolute; top: 8px; right: 8px; color: white; background-color: #7e22ce; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); opacity: 0.8;">P2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kotak Pesan Game Over -->
+            <div id="game-message" class="hidden">
+                <div style="animation: none;">
+                    <h3 id="message-title" style="font-size: 2.25rem; font-weight: 800; color: #1e40af; margin-bottom: 16px;">Waktu Habis!</h3>
+                    <p id="message-body" style="font-size: 1.125rem; color: #374151; margin-bottom: 24px;">Skor Akhir:</p>
+                    <p style="font-size: 1.5rem; font-weight: 700; margin-bottom: 24px;">
+                        P1: <span id="final-score-p1" style="color: #16a34a;">0</span> |
+                        P2: <span id="final-score-p2" style="color: #6d28d9;">0</span>
+                    </p>
+                    <button class="game-button btn-primary" style="font-size: 1.25rem;" onclick="showMenu()">
+                        Main Lagi <span style="margin-left: 8px;">🔄</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Variabel Global
+        let gameState = {
+            view: 'menu',
+            difficulty: 'Sedang',
+            isRunning: false,
+            timer: 30, // Waktu awal permainan (detik)
+            timeLimit: 30,
+            player1: { score: 0, interval: null, germTimeout: null },
+            player2: { score: 0, interval: null, germTimeout: null },
+            germsOnScreen: 0, // Batas maksimal kuman
+            maxGerms: 10,
+            germIdCounter: 0,
+            difficultySettings: {
+                'Lambat': { interval: 1500, decay: 2000, max: 8 },
+                'Sedang': { interval: 800, decay: 1200, max: 12 },
+                'Cepat': { interval: 400, decay: 800, max: 15 }
+            },
+            timerInterval: null
+        };
+
+        const DOMElements = {
+            menu: document.getElementById('main-menu'),
+            instructions: document.getElementById('instructions'),
+            gameContainer: document.getElementById('game-container'),
+            timer: document.getElementById('game-timer'),
+            scoreP1: document.getElementById('score-p1'),
+            scoreP2: document.getElementById('score-p2'),
+            areaP1: document.getElementById('player-area-1'),
+            areaP2: document.getElementById('player-area-2'),
+            difficultyDisplay: document.getElementById('current-difficulty'),
+            gameMessage: document.getElementById('game-message'),
+            messageTitle: document.getElementById('message-title'),
+            messageBody: document.getElementById('message-body'),
+            finalScoreP1: document.getElementById('final-score-p1'),
+            finalScoreP2: document.getElementById('final-score-p2'),
+        };
+
+        // --- Fungsi Navigasi UI ---
+        function setView(viewName) {
+            DOMElements.menu.style.display = 'none';
+            DOMElements.instructions.style.display = 'none';
+            DOMElements.gameContainer.style.display = 'none';
+            
+            if (viewName === 'menu') {
+                DOMElements.menu.style.display = 'block';
+            } else if (viewName === 'instructions') {
+                DOMElements.instructions.style.display = 'block';
+            } else if (viewName === 'game') {
+                DOMElements.gameContainer.style.display = 'block';
+            }
+            gameState.view = viewName;
+        }
+
+        function showMenu() {
+            // Hentikan permainan jika sedang berjalan
+            if (gameState.isRunning) {
+                stopGame(false); // Hentikan tanpa pesan game over
+            }
+            setView('menu');
+        }
+
+        function showInstructions() {
+            setView('instructions');
+        }
+
+        // --- Fungsi Utama Permainan ---
+
+        function startGame(difficulty) {
+            if (gameState.isRunning) return;
+
+            gameState.difficulty = difficulty;
+            const settings = gameState.difficultySettings[difficulty];
+
+            // Reset State
+            gameState.player1.score = 0;
+            gameState.player2.score = 0;
+            gameState.timer = gameState.timeLimit;
+            gameState.isRunning = true;
+            gameState.germIdCounter = 0;
+            gameState.maxGerms = settings.max;
+
+            // Bersihkan area permainan
+            DOMElements.areaP1.innerHTML = '<span style="position: absolute; top: 8px; left: 8px; color: white; background-color: #16a34a; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); opacity: 0.8;">P1</span>';
+            DOMElements.areaP2.innerHTML = '<span style="position: absolute; top: 8px; right: 8px; color: white; background-color: #7e22ce; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); opacity: 0.8;">P2</span>';
+            DOMElements.gameMessage.style.display = 'none';
+
+            // Update UI
+            DOMElements.difficultyDisplay.textContent = difficulty;
+            DOMElements.timer.textContent = gameState.timer;
+            updateScoreDisplay();
+            setView('game');
+
+            // Mulai Timer dan Germ Spawner
+            gameState.timerInterval = setInterval(gameTick, 1000);
+            gameState.player1.interval = setInterval(() => spawnGerm(1, settings.decay), settings.interval);
+            gameState.player2.interval = setInterval(() => spawnGerm(2, settings.decay), settings.interval);
+
+            console.log(`Permainan dimulai pada level: ${difficulty}`);
+        }
+
+        function gameTick() {
+            gameState.timer--;
+            DOMElements.timer.textContent = gameState.timer;
+
+            if (gameState.timer <= 0) {
+                stopGame(true);
+            }
+        }
+
+        function stopGame(showFinalMessage) {
+            gameState.isRunning = false;
+            clearInterval(gameState.timerInterval);
+            clearInterval(gameState.player1.interval);
+            clearInterval(gameState.player2.interval);
+
+            // Hapus semua sisa kuman
+            document.querySelectorAll('.germ').forEach(germ => germ.remove());
+
+            if (showFinalMessage) {
+                let messageTitle = 'Waktu Habis!';
+                let messageBody = 'Selamat! Anda berhasil menyelesaikan simulasi cuci tangan.';
+                
+                // Tentukan Pemenang
+                const score1 = gameState.player1.score;
+                const score2 = gameState.player2.score;
+                
+                if (score1 > score2) {
+                    messageTitle = 'Pemenang: Pemain 1!';
+                    messageBody = `Pemain 1 unggul dengan ${score1} kuman!`;
+                } else if (score2 > score1) {
+                    messageTitle = 'Pemenang: Pemain 2!';
+                    messageBody = `Pemain 2 unggul dengan ${score2} kuman!`;
+                } else {
+                    messageTitle = 'Seri!';
+                    messageBody = 'Kedua pemain sama-sama hebat dalam membersihkan kuman!';
+                }
+
+                DOMElements.messageTitle.textContent = messageTitle;
+                DOMElements.messageBody.innerHTML = messageBody + '<br>Skor Akhir:';
+                DOMElements.finalScoreP1.textContent = score1;
+                DOMElements.finalScoreP2.textContent = score2;
+                DOMElements.gameMessage.style.display = 'flex'; // Tampilkan pesan game over
+            }
+        }
+
+        // --- Fungsi Kuman (Germ) ---
+        
+        function spawnGerm(playerId, decayTime) {
+            const playerArea = (playerId === 1) ? DOMElements.areaP1 : DOMElements.areaP2;
+            const currentGerms = playerArea.querySelectorAll('.germ').length;
+
+            if (currentGerms >= gameState.maxGerms) {
+                // Jangan spawn jika sudah melebihi batas
+                return;
+            }
+
+            const areaRect = playerArea.getBoundingClientRect();
+            
+            // Posisi acak (pastikan kuman tidak keluar dari batas)
+            const minX = 0;
+            const minY = 0;
+            const germSizeDefault = 60; // Ukuran maksimum kuman dari CSS
+            // Kurangi ukuran kuman agar tidak terpotong di tepi
+            const maxX = areaRect.width - germSizeDefault; 
+            const maxY = areaRect.height - germSizeDefault; 
+            
+            const randomX = Math.random() * (maxX - minX) + minX;
+            const randomY = Math.random() * (maxY - minY) + minY;
+            
+            // Ukuran acak antara 40px hingga 60px
+            const size = Math.floor(Math.random() * (60 - 40 + 1) + 40); 
+            const type = Math.floor(Math.random() * 3) + 1; // 3 jenis kuman (kuman1.png, kuman2.png, kuman3.png)
+            
+            // Menggunakan <img> untuk kuman
+            const germ = document.createElement('img'); 
+            const germId = `germ-${++gameState.germIdCounter}`;
+            
+            germ.id = germId;
+            germ.className = `germ`;
+            // Menggunakan path relatif. Pastikan kuman1.png, kuman2.png, kuman3.png ada di folder yang sama.
+            germ.src = `kuman${type}.png`; 
+            germ.alt = `Kuman Tipe ${type}`;
+
+            germ.style.left = `${randomX}px`;
+            germ.style.top = `${randomY}px`;
+            germ.style.width = `${size}px`;
+            germ.style.height = `${size}px`;
+
+            // Event klik untuk menghapus kuman
+            germ.onclick = (e) => {
+                e.stopPropagation(); // Mencegah event bocor
+                removeGerm(germId, playerId);
+            };
+
+            playerArea.appendChild(germ);
+
+            // Kuman akan hilang secara otomatis setelah decayTime
+            germ.timeout = setTimeout(() => {
+                // Hanya hapus jika game masih berjalan
+                if (gameState.isRunning) {
+                    // Beri efek menghilang dan hapus
+                    germ.classList.add('fade-out');
+                    setTimeout(() => germ.remove(), 300);
+                }
+            }, decayTime);
+        }
+
+        function removeGerm(germId, playerId) {
+            const germ = document.getElementById(germId);
+            if (!germ) return; // Sudah terhapus
+
+            clearTimeout(germ.timeout); // Hentikan timer decay
+            
+            // Tambahkan skor
+            if (playerId === 1) {
+                gameState.player1.score++;
+            } else if (playerId === 2) {
+                gameState.player2.score++;
+            }
+            updateScoreDisplay();
+
+            // Efek klik: ubah visual sebentar
+            germ.style.transform = 'scale(1.2)'; 
+            germ.style.opacity = '0.5'; 
+            germ.style.pointerEvents = 'none'; // Nonaktifkan klik berulang
+
+            // Hapus dari DOM setelah jeda singkat
+            setTimeout(() => {
+                germ.classList.add('fade-out');
+                // Hapus total setelah transisi
+                setTimeout(() => germ.remove(), 300); 
+            }, 100); 
+        }
+
+        function updateScoreDisplay() {
+            DOMElements.scoreP1.textContent = gameState.player1.score;
+            DOMElements.scoreP2.textContent = gameState.player2.score;
+        }
+
+        // --- Inisialisasi ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setView('menu'); // Tampilkan menu utama saat aplikasi dimuat
+            // Set display awal untuk elemen-elemen yang disembunyikan
+            document.getElementById('instructions').style.display = 'none';
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('game-message').style.display = 'none';
+
+
+            // Menambahkan event listener ke area permainan
+            DOMElements.areaP1.addEventListener('click', (e) => {
+                // Klik di area kosong diabaikan
+            });
+            DOMElements.areaP2.addEventListener('click', (e) => {
+                // Klik di area kosong diabaikan
+            });
+
+            console.log("Game siap. Mode Full Offline.");
+        });
+
+    </script>
+</body>
+</html>
