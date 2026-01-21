@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balap Roket Pahlawan Sehat (Offline)</title>
+    <style>
+        /* --- CSS MURNI (OFFLINE) --- */
+        /* Tidak menggunakan link eksternal/CDN agar bisa jalan tanpa internet */
+
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: #1e293b;
+            --border: #334155;
+            --p1-primary: #06b6d4; /* Cyan */
+            --p1-dark: #0891b2;
+            --p2-primary: #f43f5e; /* Rose */
+            --p2-dark: #e11d48;
+            --accent: #facc15; /* Yellow */
+            --success: #22c55e;
+            --error: #dc2626;
+            --text-main: #ffffff;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Layout Container 16:9 */
+        #game-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 56.25vw; /* 16:9 based on width */
+            max-height: 100vh;
+            max-width: 177.78vh; /* 16:9 based on height */
+            background: linear-gradient(to bottom, var(--bg-dark), var(--bg-panel));
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 4px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .flex-center { display: flex; justify-content: center; align-items: center; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .absolute { position: absolute; }
+        .relative { position: relative; }
+
+        /* Animations */
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle infinite ease-in-out alternate;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.4s; }
+
+        /* Header */
+        .header {
+            height: 10%;
+            background-color: rgba(30, 41, 59, 0.9);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        .subtitle {
+            position: absolute;
+            right: 20px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        /* Racing Area */
+        .racing-area {
+            height: 40%;
+            background-color: rgba(15, 23, 42, 0.5);
+            border-bottom: 4px solid var(--border);
+            position: relative;
+            z-index: 5;
+        }
+        .track-lane {
+            height: 50%;
+            width: 100%;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .track-decor {
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 40px);
+        }
+        .player-label {
+            position: absolute;
+            left: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 10;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .p1-label { color: var(--p1-primary); }
+        .p2-label { color: var(--p2-primary); }
+
+        /* Finish Line */
+        .finish-line {
+            position: absolute;
+            top: 0; bottom: 0; right: 5%;
+            width: 8px;
+            background-color: var(--accent);
+            z-index: 1;
+            opacity: 0.7;
+        }
+        .checkered {
+            width: 100%; height: 100%;
+            background-image: linear-gradient(45deg, #000 25%, transparent 25%), linear-gradient(-45deg, #000 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #000 75%), linear-gradient(-45deg, transparent 75%, #000 75%);
+            background-size: 8px 8px;
+            opacity: 0.5;
+        }
+
+        /* Rocket */
+        .rocket-container {
+            position: absolute;
+            left: 5%; /* Start position */
+            width: 60px;
+            height: 60px;
+            z-index: 20;
+            transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .rocket-svg {
+            width: 100%; height: 100%;
+            transform: rotate(90deg); /* ROCKET MENGHADAP KANAN */
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+        }
+        .score-badge {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: -10px;
+            text-shadow: 0 1px 2px black;
+        }
+
+        /* Controls Area */
+        .controls-area {
+            height: 50%;
+            width: 100%;
+            display: flex;
+            z-index: 20;
+        }
+        .player-panel {
+            width: 50%;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: var(--bg-panel);
+        }
+        .panel-left { border-right: 2px solid var(--border); }
+        .panel-right { border-left: 2px solid var(--border); }
+
+        /* Question Box */
+        .question-box {
+            flex: 1;
+            background-color: var(--slate-700);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #334155;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .question-text {
+            text-align: center;
+            font-size: 1rem;
+            line-height: 1.3;
+            font-weight: 600;
+        }
+        
+        /* Answers Grid */
+        .answers-grid {
+            flex: 2;
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .btn-answer {
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+        .btn-answer:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+        }
+        /* Player 1 Button Colors */
+        .p1-btn { background-color: var(--p1-primary); }
+        .p1-btn:hover { background-color: var(--p1-dark); }
+        /* Player 2 Button Colors */
+        .p2-btn { background-color: var(--p2-primary); }
+        .p2-btn:hover { background-color: var(--p2-dark); }
+
+        .btn-correct { background-color: var(--success) !important; }
+        .btn-wrong { background-color: var(--error) !important; }
+
+        /* Penalty Overlay */
+        .lock-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.9);
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            animation: fadeIn 0.2s;
+        }
+        .lock-text {
+            color: var(--error);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Modals */
+        .modal {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.98);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .modal h1 {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 10px rgba(250, 204, 21, 0.3);
+        }
+        .modal p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+        .btn-start {
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+            transition: transform 0.2s;
+        }
+        .btn-start:hover { transform: scale(1.05); }
+        
+        @media (max-width: 768px) {
+            .title { font-size: 1rem; }
+            .question-text { font-size: 0.8rem; }
+            .btn-answer { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Background Stars (Generated by JS) -->
+        <div id="stars-container" style="position:absolute; inset:0; pointer-events:none; z-index:0;"></div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="title">Balap Roket Pahlawan Sehat</div>
+            <div class="subtitle">Target: 5 Benar</div>
+        </div>
+
+        <!-- Racing Area -->
+        <div class="racing-area">
+            <div class="finish-line">
+                <div class="checkered"></div>
+            </div>
+            <div style="position:absolute; top:5px; right:2%; font-size:0.7rem; color:var(--accent); font-weight:bold;">FINISH</div>
+
+            <!-- Player 1 Track -->
+            <div class="track-lane">
+                <div class="track-decor"></div>
+                <div class="player-label p1-label">P1</div>
+                <div id="rocket-p1" class="rocket-container">
+                    <!-- SVG Rocket Blue -->
+                    <svg class="rocket-svg" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2.5C12 2.5 15.5 6 16.5 10.5C17.5 15 16 18 16 18L12 16L8 18C8 18 6.5 15 7.5 10.5C8.5 6 12 2.5 12 2.5Z" fill="#06b6d4" stroke="white" stroke-width="1.5"/>
+                        <path d="M12 16V21L10 19" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 16V21L14 19" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="9" r="2" fill="#0f172a"/>
+                    </svg>
+                    <div class="score-badge" style="color:var(--p1-primary)" id="score-p1">0/5</div>
+                </div>
+            </div>
+
+            <!-- Player 2 Track -->
+            <div class="track-lane">
+                <div class="track-decor"></div>
+                <div class="player-label p2-label">P2</div>
+                <div id="rocket-p2" class="rocket-container">
+                    <!-- SVG Rocket Red -->
+                    <svg class="rocket-svg" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2.5C12 2.5 15.5 6 16.5 10.5C17.5 15 16 18 16 18L12 16L8 18C8 18 6.5 15 7.5 10.5C8.5 6 12 2.5 12 2.5Z" fill="#f43f5e" stroke="white" stroke-width="1.5"/>
+                        <path d="M12 16V21L10 19" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 16V21L14 19" stroke="#facc15" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="9" r="2" fill="#0f172a"/>
+                    </svg>
+                    <div class="score-badge" style="color:var(--p2-primary)" id="score-p2">0/5</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Area -->
+        <div class="controls-area">
+            
+            <!-- P1 Panel -->
+            <div class="player-panel panel-left">
+                <div id="p1-lock" class="lock-overlay hidden">
+                    <span class="lock-text">TUNGGU!</span>
+                </div>
+                <div class="question-box">
+                    <p id="q-text-p1" class="question-text">Memuat pertanyaan...</p>
+                </div>
+                <div id="options-p1" class="answers-grid"></div>
+            </div>
+
+            <!-- P2 Panel -->
+            <div class="player-panel panel-right">
+                <div id="p2-lock" class="lock-overlay hidden">
+                    <span class="lock-text">TUNGGU!</span>
+                </div>
+                <div class="question-box">
+                    <p id="q-text-p2" class="question-text">Memuat pertanyaan...</p>
+                </div>
+                <div id="options-p2" class="answers-grid"></div>
+            </div>
+        </div>
+
+        <!-- Start Modal -->
+        <div id="modal-start" class="modal">
+            <h1>SIAP BALAPAN?</h1>
+            <p>Jawab pertanyaan tentang <strong>Gaya Hidup Sehat</strong>.<br>Siapa cepat dia dapat! Raih <strong>5 Poin</strong> untuk menang.</p>
+            <button onclick="startGame()" class="btn-start">MULAI GAME</button>
+            <p style="margin-top:20px; font-size:0.8rem; color:var(--text-dim);">Mode Layar Penuh Disarankan</p>
+        </div>
+
+        <!-- Winner Modal -->
+        <div id="modal-win" class="modal hidden">
+            <div style="font-size:4rem;">🏆</div>
+            <h1 id="winner-text">PEMENANG: PLAYER 1</h1>
+            <p>Hebat! Kamu Pahlawan Sehat sejati.</p>
+            <button onclick="location.reload()" class="btn-start" style="background-color:#3b82f6;">MAIN LAGI</button>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIKA GAME ---
+
+        const questionBank = [
+            { q: "Berapa batas maksimal waktu layar (HP/TV) sehari?", a: ["2 Jam", "5 Jam", "30 Menit"], c: 0 },
+            { q: "Apa kegiatan pengganti main gadget yang baik?", a: ["Tidur seharian", "Bersepeda / Main di luar", "Makan keripik"], c: 1 },
+            { q: "Siswa kelas 5 butuh tidur berapa jam semalam?", a: ["5-7 jam", "12-14 jam", "9-11 jam"], c: 2 },
+            { q: "Apa yang harus dijauhkan sebelum tidur?", a: ["Bantal guling", "Gadget / HP", "Selimut"], c: 1 },
+            { q: "Penyakit akibat banyak makan Junk Food disebut...", a: ["Perut Kebal", "Perut Kuat", "Perut Lapar"], c: 0 },
+            { q: "Junk Food itu rendah gizi tapi tinggi...", a: ["Vitamin", "Gula & Lemak", "Serat"], c: 1 },
+            { q: "Camilan sehat pengganti keripik adalah?", a: ["Buah potong", "Permen manis", "Gorengan"], c: 0 },
+            { q: "Berapa langkah cuci tangan yang benar?", a: ["3 langkah", "6 langkah", "10 langkah"], c: 1 },
+            { q: "Tidur cukup membuat otak bisa...", a: ["Menyerap pelajaran", "Lupa segalanya", "Malas berpikir"], c: 0 },
+            { q: "Selain cuci tangan, cara jaga kebersihan diri adalah?", a: ["Memanjangkan kuku", "Jarang mandi", "Sikat gigi"], c: 2 },
+            { q: "Membatasi waktu layar mencegah sakit apa?", a: ["Mata lelah", "Sakit gigi", "Sakit perut"], c: 0 },
+            { q: "Siapa pahlawan di Kota Ceria?", a: ["Pahlawan Tidur", "Pahlawan Sehat", "Pahlawan Makan"], c: 1 }
+        ];
+
+        const TARGET_SCORE = 5;
+        let p1Score = 0;
+        let p2Score = 0;
+        let p1CurrentQ = null;
+        let p2CurrentQ = null;
+        let isGameActive = false;
+
+        window.onload = function() {
+            createStars();
+        };
+
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            for(let i=0; i<40; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const xy = Math.random() * 100;
+                star.style.width = (Math.random() * 3) + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.opacity = Math.random();
+                star.style.animationDuration = (Math.random() * 3 + 1) + 's';
+                container.appendChild(star);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('modal-start').classList.add('hidden');
+            isGameActive = true;
+            loadNewQuestion(1);
+            loadNewQuestion(2);
+        }
+
+        function getRandomQuestion(excludeQ) {
+            let available = questionBank;
+            if(excludeQ) available = questionBank.filter(q => q.q !== excludeQ.q);
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function loadNewQuestion(playerNum) {
+            if(!isGameActive) return;
+            
+            // Get Logic Data
+            const qData = getRandomQuestion(playerNum === 1 ? p1CurrentQ : p2CurrentQ);
+            if(playerNum === 1) p1CurrentQ = qData; else p2CurrentQ = qData;
+
+            // UI Update
+            document.getElementById(`q-text-p${playerNum}`).innerText = qData.q;
+            
+            let answers = qData.a.map((ans, idx) => ({ text: ans, isCorrect: idx === qData.c }));
+            answers = shuffleArray(answers);
+
+            const container = document.getElementById(`options-p${playerNum}`);
+            container.innerHTML = '';
+
+            answers.forEach(ansObj => {
+                const btn = document.createElement('button');
+                btn.className = `btn-answer p${playerNum}-btn`;
+                btn.innerText = ansObj.text;
+                
+                // Touch/Click Event
+                // Use onpointerdown to be faster on touch screens
+                btn.onpointerdown = (e) => {
+                    e.preventDefault(); // prevent double firing on some screens
+                    handleAnswer(playerNum, ansObj.isCorrect, btn);
+                };
+                
+                container.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(playerNum, isCorrect, btnElement) {
+            if(!isGameActive) return;
+            const lockEl = document.getElementById(`p${playerNum}-lock`);
+            if(!lockEl.classList.contains('hidden')) return;
+
+            if (isCorrect) {
+                btnElement.classList.add('btn-correct');
+                updateScore(playerNum);
+                setTimeout(() => loadNewQuestion(playerNum), 200);
+            } else {
+                btnElement.classList.add('btn-wrong', 'shake');
+                lockEl.classList.remove('hidden');
+                setTimeout(() => {
+                    lockEl.classList.add('hidden');
+                    btnElement.classList.remove('btn-wrong', 'shake');
+                }, 1500); // 1.5 detik hukuman
+            }
+        }
+
+        function updateScore(playerNum) {
+            const el = document.getElementById(`score-p${playerNum}`);
+            const rocket = document.getElementById(`rocket-p${playerNum}`);
+            
+            let score = (playerNum === 1) ? ++p1Score : ++p2Score;
+            el.innerText = `${score}/${TARGET_SCORE}`;
+
+            // Move rocket logic: 5% start, 85% finish
+            const pct = 5 + (score / TARGET_SCORE) * 80;
+            rocket.style.left = `${pct}%`;
+
+            if(score >= TARGET_SCORE) endGame(playerNum);
+        }
+
+        function endGame(winnerNum) {
+            isGameActive = false;
+            const modal = document.getElementById('modal-win');
+            const text = document.getElementById('winner-text');
+            modal.classList.remove('hidden');
+            
+            if(winnerNum === 1) {
+                text.innerText = "PEMENANG: TIM BIRU (P1)";
+                text.style.color = "var(--p1-primary)";
+            } else {
+                text.innerText = "PEMENANG: TIM MERAH (P2)";
+                text.style.color = "var(--p2-primary)";
+            }
+        }
+    </script>
+</body>
+</html>
