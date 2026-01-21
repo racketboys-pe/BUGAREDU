@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makanan Sehat vs. Makanan Cepat Saji (Pixel Art)</title>
+    
+    <style>
+        /* CSS Murni untuk Pengganti Tailwind dan Font Offline */
+
+        /* Font Fallback Pixel Art */
+        :root {
+            /* Font dasar diganti dengan font monospace sistem untuk dukungan offline */
+            --font-pixel: 'Courier New', monospace;
+            
+            /* Palet Warna Hangat */
+            --color-bg-light: #e8d7b9;
+            --color-bg-app: #f2eadb;
+            --color-text-dark: #3d2b27;
+            --color-primary: #a0522d; /* Sienna/Dark Tan */
+            --color-primary-dark: #8b4513; /* Saddle Brown */
+            --color-shadow: #5c301c;
+            --color-warning: #f1c40f;
+            --color-error: #c0392b;
+            --color-success: #27ae60;
+        }
+        
+        body {
+            font-family: var(--font-pixel);
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            image-rendering: pixelated; 
+            -ms-interpolation-mode: nearest-neighbor; 
+            font-size: 16px; /* DITINGKATKAN: 14px -> 16px */
+            margin: 0;
+            padding: 16px; 
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, p, ul, span, button {
+            font-family: var(--font-pixel);
+            color: var(--color-text-dark);
+            margin: 0;
+        }
+
+        h1, h2, h3 {
+            color: var(--color-primary);
+            /* SHADOW SEDIKIT DIKURANGI AGAR LEBIH TEGAS */
+            text-shadow: 1px 1px 0px var(--color-primary-dark); 
+        }
+
+        /* Container utama: pixel-frame */
+        .pixel-frame {
+            max-width: 1024px; 
+            width: 100%; 
+            height: auto; 
+            border: 4px solid var(--color-primary-dark); 
+            box-shadow: 8px 8px 0px 0px var(--color-shadow); 
+            border-radius: 0; 
+            background-color: var(--color-bg-app); 
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            background-color: var(--color-primary); 
+            border-bottom: 4px solid var(--color-primary-dark);
+            padding: 1.5rem;
+        }
+        header h1 {
+            color: #fff;
+            text-shadow: 1px 1px 0px var(--color-shadow);
+            font-size: 28px; /* DITINGKATKAN: 24px -> 28px */
+            text-align: center;
+        }
+
+        /* Navigasi Tab */
+        nav {
+            border-bottom: 4px solid var(--color-primary-dark);
+            background-color: #f0d8a9; 
+            display: flex;
+            width: 100%;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 12px 4px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem; /* DITINGKATKAN: 0.75rem -> 1rem */
+            border-bottom: 4px solid transparent;
+            transition: all 0.1s ease-in-out;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #8d5c34;
+        }
+        .tab-button:hover {
+            background-color: #f7e9d0;
+            color: var(--color-primary);
+        }
+        .tab-button.active-tab {
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+            background-color: var(--color-bg-app);
+            text-shadow: 1px 1px var(--color-primary-dark);
+        }
+
+        /* Konten Tab */
+        main {
+            padding: 2rem;
+            background-color: var(--color-bg-app);
+            flex-grow: 1; 
+            overflow-y: auto; 
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.visible {
+            display: block;
+        }
+        .tab-content h2 {
+            font-size: 24px; /* DITINGKATKAN: 20px -> 24px */
+            margin-bottom: 1.5rem;
+        }
+        .tab-content h3 {
+            font-size: 18px; /* DITAMBAHKAN/DITINGKATKAN */
+            margin-bottom: 1rem;
+        }
+        .tab-content p, .tab-content ul li {
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+            font-size: 16px; /* DITINGKATKAN: 14px -> 16px */
+        }
+        .tab-content ul {
+            list-style-type: square;
+            list-style-position: inside;
+            margin-left: 1rem;
+            padding: 0;
+        }
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+        .mt-8 { margin-top: 2rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .text-center { text-align: center; }
+        .flex { display: flex; }
+        .justify-around { justify-content: space-around; }
+        .items-center { align-items: center; }
+        .space-x-8 > * + * { margin-left: 2rem; }
+        .w-1\/2 { width: 50%; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        .flex-col { flex-direction: column; }
+        .flex-wrap { flex-wrap: wrap; }
+        .w-full { width: 100%; }
+        .h-64 { height: 16rem; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .top-0 { top: 0; }
+        .left-0 { left: 0; }
+        .h-full { height: 100%; }
+        .justify-center { justify-content: center; }
+        .content-center { align-content: center; }
+        .max-w-sm { max-width: 24rem; }
+        
+        @media (max-width: 768px) {
+            .md\:flex-row { flex-direction: row; }
+            .md\:space-y-0 { margin-top: 0; }
+            .md\:space-x-8 > * + * { margin-left: 2rem; }
+        }
+
+
+        /* Visual di Tab 1 & 2 */
+        .visual-container {
+            border: 2px solid var(--color-primary-dark);
+            background-color: #f0d8a9;
+            box-shadow: 4px 4px 0px 0px var(--color-shadow);
+            padding: 1rem;
+        }
+        .pixel-art-icon {
+            font-size: 64px; /* 4rem */
+            line-height: 1;
+            display: inline-block;
+            vertical-align: middle;
+            text-shadow: none;
+        }
+        .pixel-art-text {
+            font-size: 1rem; /* DITINGKATKAN: 0.8rem -> 1rem */
+            color: var(--color-text-dark);
+            text-shadow: none;
+            line-height: 1.2;
+        }
+        .text-red-700 { color: #c0392b; }
+        .text-green-700 { color: #27ae60; }
+        .text-orange-700 { color: #d35400; }
+        .text-amber-700 { color: #f39c12; }
+        .text-yellow-700 { color: #f1c40f; }
+        .font-bold { font-weight: bold; }
+
+        /* Drag & Drop di Tab 3 */
+        .draggable {
+            cursor: grab;
+            transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+            border: 2px solid var(--color-primary-dark);
+            background-color: #f0d8a9;
+            box-shadow: 4px 4px 0px 0px var(--color-shadow);
+            height: 112px; 
+            width: 112px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .draggable:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px var(--color-shadow);
+        }
+        .drop-zone {
+            border: 4px dashed var(--color-primary);
+            background-color: #fff0d8;
+            box-shadow: inset 2px 2px 0px 0px var(--color-primary-dark), inset -2px -2px 0px 0px var(--color-primary-dark);
+        }
+        .drop-zone.drag-over {
+            background-color: #fffbe0;
+            border-color: var(--color-primary);
+        }
+        #bekal-items .dropped-item {
+            border: 1px solid var(--color-primary-dark);
+            background-color: #f0d8a9;
+            box-shadow: 2px 2px 0px 0px var(--color-shadow);
+            padding: 0.5rem;
+            margin: 0.25rem;
+            width: 70px;
+            height: 70px;
+            font-size: 12px; /* DITINGKATKAN: 10px -> 12px */
+        }
+        #drop-message {
+            font-size: 18px; /* DITINGKATKAN: 16px -> 18px */
+            font-weight: bold;
+            color: #7f7f7f;
+            transition: opacity 0.3s;
+        }
+
+        /* Feedback Message */
+        #feedback {
+            border: 2px solid;
+            box-shadow: 4px 4px 0px 0px var(--color-shadow);
+            font-size: 1rem; /* DITINGKATKAN: 0.8rem -> 1rem */
+            padding: 0.75rem;
+        }
+        #feedback.bg-green-100 { background-color: var(--color-success); border-color: #2ecc71; color: #fff; }
+        #feedback.bg-red-100 { background-color: var(--color-error); border-color: #e74c3c; color: #fff; }
+        #feedback.bg-yellow-100 { background-color: var(--color-warning); border-color: #f39c12; color: var(--color-text-dark); }
+
+        /* Tombol */
+        button {
+            border-radius: 0;
+            cursor: pointer;
+        }
+        #check-answer-btn {
+            background-color: #cd853f; 
+            color: #fff;
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--color-primary-dark);
+            box-shadow: 4px 4px 0px 0px var(--color-primary-dark);
+            transition: all 0.1s ease-in-out;
+            font-size: 1rem; /* DITINGKATKAN: 0.85rem -> 1rem */
+        }
+        #check-answer-btn:hover {
+            background-color: var(--color-primary-dark);
+            box-shadow: 2px 2px 0px 0px var(--color-shadow);
+            transform: translate(2px, 2px);
+        }
+        #check-answer-btn:disabled {
+            background-color: #bdc3c7;
+            border-color: #95a5a6;
+            box-shadow: 4px 4px 0px 0px #95a5a6;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        #reset-bekal-btn {
+            background-color: #8d5c34; 
+            color: #fff;
+            padding: 0.75rem 1.5rem; 
+            border: 2px solid var(--color-shadow);
+            box-shadow: 4px 4px 0px 0px var(--color-shadow);
+            font-size: 1rem; /* DITINGKATKAN: 0.85rem -> 1rem */
+        }
+        #reset-bekal-btn:hover {
+            background-color: var(--color-shadow);
+            box-shadow: 2px 2px 0px 0px var(--color-text-dark);
+            transform: translate(2px, 2px);
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .overlay.visible {
+            display: flex;
+        }
+        .overlay-content {
+            background-color: var(--color-bg-app);
+            border: 4px solid var(--color-primary);
+            box-shadow: 8px 8px 0px 0px var(--color-primary-dark);
+            padding: 2rem; 
+            text-align: center;
+            max-width: 80%; 
+            font-size: 1.25rem; /* DITINGKATKAN: 1rem -> 1.25rem */
+        }
+        .overlay-content h3 {
+            margin-bottom: 1rem;
+            text-shadow: 1px 1px 0px var(--color-primary-dark);
+            font-size: 1.5rem; /* DITINGKATKAN: 1.25rem -> 1.5rem */
+        }
+        .overlay-content button {
+            margin-top: 1rem;
+        }
+        
+        /* Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            background: var(--color-primary-dark); 
+            border: 2px solid var(--color-text-dark);
+            border-radius: 0;
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            background: #cd853f; 
+            border: 2px solid var(--color-primary-dark);
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--color-shadow);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 page-container flex flex-col">
+
+    <div id="app" class="pixel-frame flex flex-col">
+        <header class="p-6">
+            <h1 class="text-xl md:text-3xl font-bold text-center">BELAJAR: MAKANAN SEHAT vs. JUNK FOOD</h1>
+        </header>
+
+        <!-- Navigasi Tab --><nav class="flex border-b">
+            <button data-tab="tab1" class="tab-button flex-1 py-3 px-1 text-center font-bold text-lg" onclick="showTab('tab1')">
+                APA ITU?
+            </button>
+            <button data-tab="tab2" class="tab-button flex-1 py-3 px-1 text-center font-bold text-lg" onclick="showTab('tab2')">
+                BAHAYANYA
+            </button>
+            <button data-tab="tab3" class="tab-button flex-1 py-3 px-1 text-center font-bold text-lg" onclick="showTab('tab3')">
+                CEMILAN PENGGANTI
+            </button>
+        </nav>
+
+        <!-- Konten Tab --><main class="p-6 md:p-8">
+
+            <!-- Tab 1: Apa Itu? --><section id="tab1" class="tab-content">
+                <h2 class="text-xl md:text-2xl mb-4">APA ITU MAKANAN CEPAT SAJI (JUNK FOOD)?</h2>
+                <div class="space-y-4">
+                    <p>
+                        Makanan cepat saji, atau 'JUNK FOOD', adalah makanan yang cepat dimasak dan disajikan.
+                        Ciri utamanya adalah <span class="text-red-700 font-bold">tinggi gula, garam, dan lemak</span>, tapi <span class="text-green-700 font-bold">sedikit vitamin dan serat</span>.
+                        Contoh: KENTANG GORENG, minuman manis.
+                    </p>
+                    <p class="font-bold">
+                        RASANYA ENAK, tapi tidak bergizi untuk TUBUHMU!
+                    </p>
+                </div>
+                <!-- Visual Perbandingan Pixel Art --><div class="mt-8 p-4 visual-container">
+                    <h3 class="text-lg font-bold text-center mb-4 text-orange-700">PERBANDINGAN MAKANAN</h3>
+                    <div class="flex flex-col md:flex-row justify-around items-center space-y-6 md:space-y-0 md:space-x-8">
+                        <div class="flex flex-col items-center p-4 bg-red-100 rounded-none shadow-xl w-full md:w-1/2 border-2 border-red-700">
+                            <!-- Placeholder Pixel Art Junk Food --><span class="pixel-art-icon">🍟🥤</span>
+                            <span class="text-4xl text-red-700 font-bold mt-2">X</span>
+                            <p class="mt-2 text-center font-bold text-red-700 pixel-art-text">JUNK FOOD</p>
+                            <p class="text-xs text-gray-700 pixel-art-text">GULA & LEMAK TINGGI</p>
+                        </div>
+                        <div class="flex flex-col items-center p-4 bg-green-100 rounded-none shadow-xl w-full md:w-1/2 border-2 border-green-700">
+                            <!-- Placeholder Pixel Art Makanan Sehat --><span class="pixel-art-icon">🍎🥦</span>
+                            <span class="text-4xl text-green-700 font-bold mt-2">V</span>
+                            <p class="mt-2 text-center font-bold text-green-700 pixel-art-text">MAKANAN SEHAT</p>
+                            <p class="text-xs text-gray-700 pixel-art-text">VITAMIN & SERAT</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Bahayanya (Slider Interaktif) --><section id="tab2" class="tab-content">
+                <h2 class="text-xl md:text-2xl mb-4">BAHAYA JIKA TERLALU SERING</h2>
+                <div class="space-y-4 text-gray-700 leading-relaxed">
+                    <p>Makan JUNK FOOD terus-menerus bisa bikin tubuhmu LEMAH! Gunakan slider di bawah untuk melihat bagaimana kualitas makanan memengaruhi energi tubuhmu.</p>
+                </div>
+                <!-- Visual Slider Energi Interaktif --><div class="mt-8 p-6 visual-container">
+                    <h3 class="text-lg font-bold text-center mb-6 text-orange-700">LEVEL ENERGI TUBUHMU</h3>
+                    
+                    <!-- Energy Visualization -->
+                    <div class="flex flex-col items-center mb-6">
+                        <div id="energy-icon" class="pixel-art-icon text-5xl mb-4"></div> <!-- Icon will change -->
+                        <div id="energy-bar" style="width: 100%; max-width: 384px; height: 32px; border: 2px solid var(--color-text-dark); background-color: #9ca3af;">
+                            <div id="energy-fill" style="height: 100%; transition: all 0.3s;"></div>
+                        </div>
+                        <p id="energy-level-text" class="mt-4 font-bold text-center"></p>
+                    </div>
+                    
+                    <!-- Slider Input -->
+                    <input type="range" id="food-quality-slider" min="0" max="100" value="50" style="margin-top: 1rem;">
+                    
+                    <div class="flex justify-between mt-4 text-xs font-bold">
+                        <span class="text-red-700">JUNK FOOD (Energi Rendah)</span>
+                        <span class="text-green-700">MAKANAN SEHAT (Energi Penuh)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3: Makanan Sehat Pengganti (Interaktif Drag & Drop + Cek Jawaban) --><section id="tab3" class="tab-content">
+                <h2 class="text-xl md:text-2xl mb-4">AYO ISI KOTAK BEKAL SEHATMU!</h2>
+                <p class="text-gray-700 leading-relaxed mb-6">
+                    Pilih cemilan bergizi agar perutmu kuat! Seret makanan sehat ke dalam **KOTAK BEKAL SEHAT**!
+                </p>
+
+                <div class="flex flex-col lg:flex-row gap-6" style="display: flex;">
+
+                    <!-- Area Drop Zone (Kotak Bekal) --><div class="lg:w-1/2 p-6 drop-zone h-64 flex flex-wrap justify-center content-center relative" id="drop-zone" style="width: 100%; @media (min-width: 1024px) { width: 50%; }">
+                        <!-- TULISAN DI KOTAK DROP ZONE DIKECILKAN: text-base -->
+                        <span id="drop-message" class="text-base font-bold text-gray-600 transition duration-300">
+                            KOTAK BEKAL SEHAT
+                        </span>
+                        <div id="bekal-items" class="flex flex-wrap gap-2 justify-center items-center w-full h-full p-2 absolute top-0 left-0" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 0.5rem; position: absolute; top: 0; left: 0;">
+                            <!-- Items will be dropped here --></div>
+                    </div>
+
+                    <!-- Area Draggable Items --><div class="lg:w-1/2 p-4 visual-container" style="width: 100%; @media (min-width: 1024px) { width: 50%; }">
+                        <h3 class="text-lg font-bold text-orange-700 mb-3">PILIHAN CEMILAN</h3>
+                        <div class="flex flex-wrap gap-4 justify-center" id="drag-items-container" style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+
+                            <!-- Item 1: Buah --><div id="item-buah" class="draggable healthy-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🍎</span>
+                                <p class="text-sm font-bold mt-1 text-orange-700 pixel-art-text">BUAH</p>
+                            </div>
+
+                            <!-- Item 2: Yogurt --><div id="item-sandwich" class="draggable healthy-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🥛</span>
+                                <p class="text-sm font-bold mt-1 text-green-700 pixel-art-text">YOGURT</p>
+                            </div>
+
+                            <!-- Item 3: Kacang Rebus --><div id="item-kacang" class="draggable healthy-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🥜</span>
+                                <p class="text-sm font-bold mt-1 text-amber-700 pixel-art-text">KACANG</p>
+                            </div>
+                            
+                            <!-- Item 4: Ubi Rebus (Tambahan) --><div id="item-ubi" class="draggable healthy-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🍠</span>
+                                <p class="text-sm font-bold mt-1 text-yellow-700 pixel-art-text">UBI REBUS</p>
+                            </div>
+
+                            <!-- Item 5: Singkong Rebus (Tambahan) --><div id="item-singkong" class="draggable healthy-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🌱</span>
+                                <p class="text-sm font-bold mt-1 text-green-700 pixel-art-text">SINGKONG</p>
+                            </div>
+
+                            <!-- Junk Food 1: Soda (Existing) --><div id="item-soda" class="draggable junk-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🥤</span>
+                                <p class="text-sm font-bold mt-1 text-red-700 pixel-art-text">SODA</p>
+                            </div>
+
+                            <!-- Junk Food 2: Gorengan (NEW) --><div id="item-gorengan" class="draggable junk-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🍤</span>
+                                <p class="text-sm font-bold mt-1 text-red-700 pixel-art-text">GORENGAN</p>
+                            </div>
+                            
+                            <!-- Junk Food 3: Es Teh Manis Kemasan (UPDATED ICON) --><div id="item-estehmanis" class="draggable junk-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🥃</span>
+                                <p class="text-sm font-bold mt-1 text-red-700 pixel-art-text">ES TEH MANIS</p>
+                            </div>
+
+                            <!-- Junk Food 4: Nugget (NEW) --><div id="item-nugget" class="draggable junk-food p-3 rounded-none text-center w-28 h-28 flex flex-col items-center justify-center" draggable="true">
+                                <span class="pixel-art-icon">🍗</span>
+                                <p class="text-sm font-bold mt-1 text-red-700 pixel-art-text">NUGGET</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Cek Jawaban & Reset --><div class="mt-8 text-center flex justify-center gap-4" style="margin-top: 2rem; text-align: center; display: flex; justify-content: center; gap: 1rem;">
+                    <button id="reset-bekal-btn" class="font-bold">RESET BEKAL</button>
+                    <button id="check-answer-btn" class="font-bold">CEK JAWABAN!</button>
+                </div>
+
+                <!-- Feedback Message --><div id="feedback" class="mt-6 p-3 text-center hidden" role="alert"></div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Overlay untuk Hasil Cek Jawaban --><div id="result-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h3 id="overlay-title"></h3>
+            <p id="overlay-message"></p>
+            <button onclick="closeResultOverlay()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // Inisialisasi: Tampilkan tab pertama saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('tab1');
+            setupDragAndDrop();
+            
+            const slider = document.getElementById('food-quality-slider');
+            if (slider) {
+                updateEnergyLevel(slider.value);
+                slider.addEventListener('input', (e) => {
+                    updateEnergyLevel(e.target.value);
+                });
+            }
+        });
+
+        // Fungsi untuk mengganti Tab
+        function showTab(tabId) {
+            // Sembunyikan semua konten tab
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('visible');
+            });
+            // Hapus style aktif dari semua tombol
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active-tab');
+            });
+
+            // Tampilkan konten tab yang dipilih
+            const content = document.getElementById(tabId);
+            if (content) content.classList.add('visible');
+
+            // Beri style aktif pada tombol yang dipilih
+            const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+            if (selectedButton) {
+                selectedButton.classList.add('active-tab');
+            }
+        }
+
+        // --- Logika Slider Energi (Tab 2) ---
+        const energyFill = document.getElementById('energy-fill');
+        const energyIcon = document.getElementById('energy-icon');
+        const energyLevelText = document.getElementById('energy-level-text');
+
+        function updateEnergyLevel(value) {
+            const percentage = value;
+            if (energyFill) energyFill.style.width = `${percentage}%`;
+
+            let color, icon, text, textColor;
+
+            if (percentage < 30) {
+                // Low Energy (Junk Food)
+                color = '#c0392b'; // Dark Red
+                icon = '💀'; // Skull/Dead
+                text = 'ENERGI SANGAT RENDAH: Cepat lemas, susah fokus, dan mudah sakit.';
+                textColor = '#c0392b'; // Gunakan merah
+            } else if (percentage < 70) {
+                // Medium Energy (Balanced/Just OK)
+                color = '#f1c40f'; // Yellow/Orange
+                icon = '😐'; // Neutral
+                // Teks yang diminta (dihilangkan tanda * dan menggunakan titik)
+                text = 'ENERGI CUKUP: Bisa belajar, tapi belum maksimal. Butuh lebih banyak vitamin!';
+                textColor = '#3d2b27'; // Gunakan warna cokelat gelap untuk kontras pada latar kuning
+            } else {
+                // High Energy (Healthy Food)
+                color = '#27ae60'; // Dark Green
+                icon = '🌟'; // Star/Shining
+                text = 'ENERGI PENUH! Tubuh kuat, semangat belajar, siap beraktivitas seharian!';
+                textColor = '#27ae60'; // Gunakan hijau
+            }
+
+            if (energyFill) energyFill.style.backgroundColor = color;
+            if (energyIcon) energyIcon.textContent = icon;
+            if (energyLevelText) {
+                energyLevelText.textContent = text;
+                energyLevelText.style.color = textColor;
+            }
+        }
+
+        // --- Logika Drag & Drop (Tab 3) ---
+
+        const dropZone = document.getElementById('drop-zone');
+        const bekalItemsContainer = document.getElementById('bekal-items');
+        const dropMessage = document.getElementById('drop-message');
+        const feedback = document.getElementById('feedback');
+        const checkAnswerBtn = document.getElementById('check-answer-btn');
+        const resetButton = document.getElementById('reset-bekal-btn');
+
+
+        // Untuk melacak item yang sudah didrop
+        let droppedHealthyItems = [];
+        // Daftar camilan sehat baru (5 item)
+        const correctHealthyItems = ['item-buah', 'item-sandwich', 'item-kacang', 'item-ubi', 'item-singkong'];
+
+        function setupDragAndDrop() {
+            document.querySelectorAll('.draggable').forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd); 
+            });
+
+            dropZone.addEventListener('dragover', handleDragOver);
+            dropZone.addEventListener('dragleave', handleDragLeave);
+            dropZone.addEventListener('drop', handleDrop);
+
+            checkAnswerBtn.addEventListener('click', checkAnswers);
+            resetButton.addEventListener('click', resetBekal); // Listener untuk tombol Reset
+
+            updateCheckAnswerButtonState();
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.id);
+            e.dataTransfer.setData('text/type', e.target.classList.contains('healthy-food') ? 'healthy' : 'junk');
+            e.target.classList.add('opacity-50');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('opacity-50'); 
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            dropZone.classList.remove('drag-over');
+        }
+
+        function displayFeedback(message, type = 'success') {
+            feedback.textContent = message;
+            feedback.classList.remove('visible');
+            feedback.className = 'mt-6 p-3 text-center';
+            
+            if (type === 'success') {
+                feedback.classList.add('bg-green-100');
+            } else if (type === 'error') {
+                feedback.classList.add('bg-red-100');
+            } else { // info
+                feedback.classList.add('bg-yellow-100');
+            }
+            feedback.classList.add('visible');
+
+            // Sembunyikan setelah 3 detik
+            setTimeout(() => {
+                feedback.classList.remove('visible');
+            }, 3000);
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+
+            const itemId = e.dataTransfer.getData('text/plain');
+            const itemType = e.dataTransfer.getData('text/type');
+            const draggableElement = document.getElementById(itemId);
+
+            if (!draggableElement) return;
+
+            if (itemType === 'healthy') {
+                if (!droppedHealthyItems.includes(itemId)) { 
+                    
+                    const droppedItem = draggableElement.cloneNode(true);
+                    droppedItem.removeAttribute('draggable');
+                    droppedItem.classList.remove('draggable', 'shadow-lg');
+                    droppedItem.classList.add('dropped-item', 'cursor-default'); 
+                    droppedItem.style.width = '70px';
+                    droppedItem.style.height = '70px';
+                    // Ukuran icon/teks untuk item yang didrop disesuaikan
+                    droppedItem.querySelector('.pixel-art-icon').style.fontSize = '30px'; 
+                    droppedItem.querySelector('p').style.fontSize = '12px'; /* Diperbarui ke 12px */
+
+                    dropMessage.classList.remove('visible'); // Sembunyikan dengan CSS visibility
+
+                    bekalItemsContainer.appendChild(droppedItem);
+                    draggableElement.style.display = 'none'; // Sembunyikan item asli
+                    
+                    droppedHealthyItems.push(itemId); // Tambahkan item ke daftar untuk dicek
+                    
+                    displayFeedback(`🎉 YEAY! Kamu memasukkan ${droppedItem.querySelector('p').textContent} ke bekal sehat!`, 'success');
+                } else {
+                    displayFeedback('❗ Kamu sudah memasukkan itu ke bekal!', 'info');
+                }
+            } else if (itemType === 'junk') {
+                // Makanan tidak sehat: Tolak drop, tampilkan error.
+                displayFeedback('⛔ ZONK! Itu bukan makanan sehat. Coba pilih yang bergizi!', 'error');
+            }
+            
+            updateCheckAnswerButtonState();
+        }
+
+        function resetBekal() {
+            // 1. Clear the dropped items array
+            droppedHealthyItems = [];
+
+            // 2. Clear items from the bekal container
+            bekalItemsContainer.innerHTML = '';
+
+            // 3. Show the drop message
+            dropMessage.classList.add('visible');
+            
+            // 4. Reset visibility of all draggable items
+            document.querySelectorAll('.draggable').forEach(item => {
+                item.style.display = 'flex'; 
+            });
+
+            // 5. Update button state
+            updateCheckAnswerButtonState();
+            
+            // 6. Optional feedback
+            displayFeedback('Kotak bekal sudah dibersihkan! Silakan seret ulang cemilan sehatmu.', 'info');
+        }
+
+        function updateCheckAnswerButtonState() {
+            // Aktifkan tombol jika ada setidaknya satu item di dalam kotak bekal
+            checkAnswerBtn.disabled = droppedHealthyItems.length === 0;
+            // Class styling untuk disabled/enabled ditangani CSS
+        }
+
+        function checkAnswers() {
+            let correctItemsDropped = correctHealthyItems.filter(id => droppedHealthyItems.includes(id)).length;
+            
+            let title = '';
+            let message = '';
+            let allCorrect = correctItemsDropped === correctHealthyItems.length;
+
+            if (allCorrect) { 
+                title = "🎉 HEBAT! BEKAL SEHAT LENGKAP!";
+                message = `Semua ${correctHealthyItems.length} cemilan sehat sudah kamu masukkan! Tubuhmu pasti kuat dan cerdas!`;
+            } else if (correctItemsDropped > 0) {
+                title = "👍 BAGUS, TAPI BELUM LENGKAP!";
+                message = `Kamu sudah memasukkan ${correctItemsDropped} dari ${correctHealthyItems.length} cemilan sehat. Ayo cari sisanya!`;
+            } else {
+                title = "🤔 UPS! KOTAK BEKAL KOSONG!";
+                message = "Kamu belum memasukkan cemilan sehat apapun. Seret cemilan yang benar ya!";
+            }
+
+            showResultOverlay(title, message);
+        }
+
+        function showResultOverlay(title, message) {
+            document.getElementById('overlay-title').textContent = title;
+            document.getElementById('overlay-message').textContent = message;
+            document.getElementById('result-overlay').classList.add('visible');
+        }
+
+        function closeResultOverlay() {
+            document.getElementById('result-overlay').classList.remove('visible');
+        }
+    </script>
+</body>
+</html>
