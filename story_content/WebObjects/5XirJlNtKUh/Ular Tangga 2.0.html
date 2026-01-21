@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Misi Hidup Sehat: Snake Battle V6</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+        /* --- CSS GLOBAL --- */
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #main-container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw;
+            max-height: 100vh;
+            max-width: 177.78vh;
+            background: #ecf0f1;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* --- UPDATED BG LAYER UNTUK MENDUKUNG GAMBAR --- */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #2c3e50; 
+            /* Default background image akan di-set lewat JS */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 0;
+            transition: background-image 0.5s ease-in-out; /* Efek transisi halus saat ganti gambar */
+        }
+
+        /* Overlay gelap opsional agar teks tetap terbaca di atas gambar background */
+        .bg-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.4); /* Ubah 0.4 jadi 0.0 jika ingin gambar terang total */
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        
+        /* Background semi-transparan untuk panel menu agar teks jelas */
+        #home-screen, #setup-screen, #gameover-screen, #info-screen {
+            background: rgba(44, 62, 80, 0.85); 
+        }
+        
+        .hidden { display: none !important; }
+
+        #game-screen {
+            flex-direction: row; 
+            background: transparent;
+            display: none; 
+        }
+
+        .player-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #34495e;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(5px);
+        }
+        
+        #p1-area { border-right: 1px solid #34495e; }
+        #p2-area { border-left: 1px solid #34495e; }
+
+        canvas {
+            width: 100%;
+            height: 75%;
+            display: block;
+        }
+
+        /* --- UI ELEMENTS --- */
+        h1 { font-size: 3.5rem; color: #2ecc71; margin: 0 0 20px 0; text-shadow: 3px 3px 0 #000; text-align: center;}
+        h2 { font-size: 2rem; color: #f1c40f; margin-bottom: 20px; }
+        p { font-size: 1.2rem; line-height: 1.6; max-width: 800px; text-align: center; margin-bottom: 30px; }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+            margin: 10px;
+            font-family: 'Fredoka', sans-serif;
+            min-width: 200px;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .btn-primary { background: #2ecc71; color: white; }
+        .btn-secondary { background: #e67e22; color: white; }
+        .btn-info { background: #3498db; color: white; }
+        .btn-back { background: #95a5a6; color: white; font-size: 1rem; padding: 10px 20px; margin-top: 20px;}
+
+        /* --- SETUP SCREEN FORM --- */
+        .setup-container {
+            display: flex;
+            gap: 50px;
+            width: 80%;
+            justify-content: center;
+        }
+        .player-setup-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            width: 40%;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            width: 80%;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-family: inherit;
+        }
+        .avatar-options {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .avatar-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+            background: white;
+        }
+        .avatar-option img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-option.selected { border-color: #f1c40f; transform: scale(1.1); }
+
+        /* --- GAME UI --- */
+        .info-panel {
+            height: 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .avatar-display {
+            width: 35px; height: 35px; border-radius: 50%; border: 2px solid #333; margin-right: 10px; vertical-align: middle; background: white;
+        }
+
+        /* --- CONTROLS --- */
+        .controls-wrapper { height: 17%; display: flex; justify-content: center; align-items: center; }
+        .d-pad { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 4px; transform: scale(0.9); }
+        .ctrl-btn {
+            width: 50px; height: 50px; border-radius: 10px; border: none; font-size: 20px; color: white;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .ctrl-btn:active { transform: translateY(3px); box-shadow: none; }
+        .btn-u { grid-column: 2; grid-row: 1; }
+        .btn-l { grid-column: 1; grid-row: 2; }
+        .btn-d { grid-column: 2; grid-row: 2; }
+        .btn-r { grid-column: 3; grid-row: 2; }
+
+        #p1-area .ctrl-btn { background: #3498db; }
+        #p2-area .ctrl-btn { background: #e74c3c; }
+
+        .float-text {
+            position: absolute; font-weight: 800; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 20; text-shadow: 1px 1px 0 #fff;
+        }
+        @keyframes floatUp { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-40px) scale(1.5); } }
+
+        .timer-bar {
+            position: absolute;
+            top: 0; left: 0;
+            height: 4px;
+            background: #f1c40f;
+            width: 100%;
+            z-index: 5;
+            transition: width 0.1s linear;
+        }
+
+        /* --- FIREWORKS --- */
+        #fireworks-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; 
+            z-index: 1; 
+        }
+
+        .gameover-content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .setup-container { flex-direction: column; align-items: center; width: 100%; gap: 20px; }
+            .player-setup-box { width: 80%; }
+            h1 { font-size: 2rem; }
+            .d-pad { transform: scale(0.7); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- AUDIO ELEMENTS (Source akan diisi via JS) -->
+<audio id="bg-music" loop>
+    <source src="" type="audio/mpeg">
+</audio>
+<audio id="winner-music">
+    <source src="" type="audio/mpeg">
+</audio>
+
+<div id="main-container">
+    <!-- BACKGROUND LAYER -->
+    <div class="bg-layer" id="game-bg"></div>
+    <div class="bg-overlay"></div> <!-- Overlay gelap tipis agar teks terbaca -->
+
+    <!-- 1. HOME SCREEN -->
+    <div id="home-screen" class="screen">
+        <h1>MISI HIDUP SEHAT</h1>
+        <p>Hindari risiko gaya hidup tidak sehat dengan cara yang menyenangkan!</p>
+        <div>
+            <button class="btn btn-primary" onclick="showScreen('setup-screen')">MAIN SEKARANG</button>
+            <button class="btn btn-info" onclick="showScreen('info-screen')">CARA BERMAIN</button>
+        </div>
+    </div>
+
+    <!-- 2. INFO SCREEN -->
+    <div id="info-screen" class="screen hidden">
+        <h2>CARA BERMAIN</h2>
+        <div style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; text-align: left;">
+            <p>1. <b>Tujuan:</b> Makan makanan sehat sebanyak mungkin.</p>
+            <p>2. <b>Mekanisme:</b> Makanan akan <b>RESET</b> setiap 5 detik. Cepatlah!</p>
+            <p>3. <b>Skor:</b> 
+                <br>🍎 Makanan Sehat = +10 Poin.
+                <br>🍔 Makanan Tidak Sehat = -5 Poin.
+            </p>
+            <p>4. <b>Aturan:</b> Ular bisa menembus tembok!</p>
+        </div>
+        <button class="btn btn-back" onclick="showScreen('home-screen')">KEMBALI KE MENU</button>
+    </div>
+
+    <!-- 3. SETUP SCREEN -->
+    <div id="setup-screen" class="screen hidden">
+        <h2>PERSIAPAN PEMAIN</h2>
+        <div class="setup-container">
+            <div class="player-setup-box">
+                <h3 style="color:#3498db">PEMAIN 1 (Biru)</h3>
+                <input type="text" id="p1-name" placeholder="Nama Pemain 1" value="Si Biru">
+                <p style="margin:5px 0; font-size:0.9rem">Pilih Avatar:</p>
+                <div class="avatar-options" id="p1-avatars"></div>
+            </div>
+            <div class="player-setup-box">
+                <h3 style="color:#e74c3c">PEMAIN 2 (Merah)</h3>
+                <input type="text" id="p2-name" placeholder="Nama Pemain 2" value="Si Merah">
+                <p style="margin:5px 0; font-size:0.9rem">Pilih Avatar:</p>
+                <div class="avatar-options" id="p2-avatars"></div>
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')">BATAL</button>
+            <button class="btn btn-primary" onclick="startGameSession()">MULAI!</button>
+        </div>
+    </div>
+
+    <!-- 4. GAME SCREEN -->
+    <div id="game-screen" class="screen hidden">
+        <div class="player-area" id="p1-area">
+            <div class="timer-bar" id="p1-timer-bar"></div>
+            <div class="info-panel">
+                <div style="display:flex; align-items:center">
+                    <img id="p1-hud-avatar" class="avatar-display" src="">
+                    <span id="p1-hud-name">P1</span>
+                </div>
+                <span id="p1-score">0</span>
+            </div>
+            <canvas id="canvas1"></canvas>
+            <div class="controls-wrapper">
+                <div class="d-pad">
+                    <button class="ctrl-btn btn-u" onpointerdown="setDir(1, 'up')">▲</button>
+                    <button class="ctrl-btn btn-l" onpointerdown="setDir(1, 'left')">◀</button>
+                    <button class="ctrl-btn btn-d" onpointerdown="setDir(1, 'down')">▼</button>
+                    <button class="ctrl-btn btn-r" onpointerdown="setDir(1, 'right')">▶</button>
+                </div>
+            </div>
+        </div>
+        <div class="player-area" id="p2-area">
+            <div class="timer-bar" id="p2-timer-bar"></div>
+            <div class="info-panel">
+                <div style="display:flex; align-items:center">
+                    <img id="p2-hud-avatar" class="avatar-display" src="">
+                    <span id="p2-hud-name">P2</span>
+                </div>
+                <span id="p2-score">0</span>
+            </div>
+            <canvas id="canvas2"></canvas>
+            <div class="controls-wrapper">
+                <div class="d-pad">
+                    <button class="ctrl-btn btn-u" onpointerdown="setDir(2, 'up')">▲</button>
+                    <button class="ctrl-btn btn-l" onpointerdown="setDir(2, 'left')">◀</button>
+                    <button class="ctrl-btn btn-d" onpointerdown="setDir(2, 'down')">▼</button>
+                    <button class="ctrl-btn btn-r" onpointerdown="setDir(2, 'right')">▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. GAME OVER SCREEN -->
+    <div id="gameover-screen" class="screen hidden" style="background: rgba(0,0,0,0.9);">
+        <canvas id="fireworks-canvas"></canvas>
+
+        <div class="gameover-content">
+            <h1 style="color: #e74c3c">PERMAINAN SELESAI</h1>
+            <h2 id="winner-text" style="color:white">Pemain 1 Menang!</h2>
+            
+            <div class="setup-container" style="justify-content: center; gap: 40px; margin-bottom: 30px;">
+                <div style="text-align: center;">
+                    <img id="end-avatar-1" class="avatar-display" style="width:80px; height:80px; margin:0 auto">
+                    <h3 id="end-score-1" style="color:#3498db">0</h3>
+                </div>
+                <div style="text-align: center;">
+                    <img id="end-avatar-2" class="avatar-display" style="width:80px; height:80px; margin:0 auto">
+                    <h3 id="end-score-2" style="color:#e74c3c">0</h3>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startGameSession()">MAIN LAGI</button>
+            <button class="btn btn-secondary" onclick="showScreen('home-screen')">MENU UTAMA</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ================================================================
+       👇👇 KONFIGURASI GAMBAR & MUSIK (GANTI DISINI) 👇👇
+       ================================================================
+    */
+
+    // --- A. BACKGROUND IMAGES (JPG/PNG) ---
+    // 1. Gambar untuk Halaman Utama (Menu/Lobby)
+    const BACKGROUND_MENU = 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop'; 
+
+    // 2. Gambar untuk Saat Bermain (In-Game)
+    const BACKGROUND_GAME = 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000&auto=format&fit=crop';
+
+    // --- B. AUDIO / MUSIK (MP3) ---
+    // 1. Musik Loop saat bermain
+    // 👉 GANTI NAMA FILE DISINI (Contoh: 'lagu_game.mp3')
+    const MUSIC_GAMEPLAY = 'background.mp3';
+
+    // 2. Musik Efek saat ada pemenang
+    // 👉 GANTI NAMA FILE DISINI (Contoh: 'lagu_menang.mp3')
+    const MUSIC_WINNER = 'winner.mp3';
+
+    /* ================================================================
+       KONFIGURASI LAINNYA
+       ================================================================
+    */
+
+    const AVATAR_LIST = ['avatar1.jpg', 'avatar2.jpg', 'avatar3.jpg', 'avatar4.jpg'];
+    const SRC_MAKANAN_SEHAT = ['sehat1.jpg', 'sehat2.jpg', 'sehat3.jpg', 'sehat4.jpg', 'sehat5.jpg'];
+    const SRC_MAKANAN_TIDAK_SEHAT = ['tidaksehat1.jpg', 'tidaksehat2.jpg', 'tidaksehat3.jpg', 'tidaksehat4.jpg', 'tidaksehat5.jpg'];
+
+    const bgMusic = document.getElementById('bg-music');
+    const winnerMusic = document.getElementById('winner-music');
+    
+    bgMusic.volume = 0.4; 
+    winnerMusic.volume = 0.8;
+
+    /* ================================================================ */
+
+    let p1Data = { name: "Player 1", avatar: AVATAR_LIST[0] };
+    let p2Data = { name: "Player 2", avatar: AVATAR_LIST[1] };
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        
+        if (id !== 'gameover-screen') {
+            stopFireworks();
+        }
+
+        if (id === 'home-screen') {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            winnerMusic.pause();
+            winnerMusic.currentTime = 0;
+        }
+
+        const bgLayer = document.getElementById('game-bg');
+        
+        // --- LOGIKA GANTI BACKGROUND ---
+        if(id === 'game-screen') {
+            document.getElementById('game-screen').style.display = 'flex';
+            bgLayer.style.backgroundImage = `url('${BACKGROUND_GAME}')`;
+        } else {
+            document.getElementById('game-screen').style.display = 'none';
+            bgLayer.style.backgroundImage = `url('${BACKGROUND_MENU}')`;
+        }
+    }
+
+    function initAvatarSetup() {
+        const createOptions = (playerId, containerId, dataObj) => {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            AVATAR_LIST.forEach((url, idx) => {
+                const div = document.createElement('div');
+                div.className = `avatar-option ${url === dataObj.avatar ? 'selected' : ''}`;
+                div.onclick = () => {
+                    dataObj.avatar = url;
+                    Array.from(container.children).forEach(c => c.classList.remove('selected'));
+                    div.classList.add('selected');
+                };
+                const img = document.createElement('img');
+                img.src = url;
+                img.onerror = function() { this.src = 'https://via.placeholder.com/60?text=IMG'; };
+                div.appendChild(img);
+                container.appendChild(div);
+            });
+        };
+        createOptions(1, 'p1-avatars', p1Data);
+        createOptions(2, 'p2-avatars', p2Data);
+    }
+
+    /* --- LOGIKA KEMBANG API --- */
+    const fwCanvas = document.getElementById('fireworks-canvas');
+    const fwCtx = fwCanvas.getContext('2d');
+    let fireworks = [];
+    let fwAnimationId;
+
+    function resizeFwCanvas() {
+        fwCanvas.width = fwCanvas.offsetWidth;
+        fwCanvas.height = fwCanvas.offsetHeight;
+    }
+
+    class FireworkParticle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y;
+            this.color = color;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 1;
+            this.dx = Math.cos(angle) * speed;
+            this.dy = Math.sin(angle) * speed;
+            this.alpha = 1;
+            this.decay = Math.random() * 0.02 + 0.01;
+        }
+        update() {
+            this.x += this.dx;
+            this.y += this.dy;
+            this.alpha -= this.decay;
+        }
+        draw() {
+            fwCtx.save();
+            fwCtx.globalAlpha = this.alpha;
+            fwCtx.fillStyle = this.color;
+            fwCtx.beginPath();
+            fwCtx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+            fwCtx.fill();
+            fwCtx.restore();
+        }
+    }
+
+    function createFirework(x, y) {
+        const colors = ['#f1c40f', '#e74c3c', '#2ecc71', '#3498db', '#9b59b6'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        for(let i=0; i<30; i++) {
+            fireworks.push(new FireworkParticle(x, y, color));
+        }
+    }
+
+    function animateFireworks() {
+        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        if (Math.random() < 0.05) {
+            createFirework(
+                Math.random() * fwCanvas.width, 
+                Math.random() * fwCanvas.height * 0.6
+            );
+        }
+        
+        fireworks.forEach((p, index) => {
+            p.update();
+            p.draw();
+            if (p.alpha <= 0) fireworks.splice(index, 1);
+        });
+        
+        fwAnimationId = requestAnimationFrame(animateFireworks);
+    }
+
+    function startFireworks() {
+        resizeFwCanvas();
+        fireworks = [];
+        animateFireworks();
+    }
+
+    function stopFireworks() {
+        cancelAnimationFrame(fwAnimationId);
+        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+    }
+
+    // --- GAME ENGINE ---
+    const GAME_SPEED = 1; 
+    const SNAKE_SIZE = 22; 
+    const FOOD_SIZE = 30; 
+    const FOOD_RESET_TIME = 5000;
+    
+    let animationId;
+    let players = [];
+
+    function createImage(src) {
+        const img = new Image();
+        img.src = src;
+        return img;
+    }
+
+    class Player {
+        constructor(id, canvasId, color, name, avatarUrl) {
+            this.id = id;
+            this.canvas = document.getElementById(canvasId);
+            this.ctx = this.canvas.getContext('2d');
+            this.color = color;
+            this.name = name;
+            this.avatar = avatarUrl;
+            
+            this.score = 0;
+            this.scoreElem = document.getElementById(`p${id}-score`);
+            this.timerElem = document.getElementById(`p${id}-timer-bar`);
+            
+            this.x = 0; this.y = 0;
+            this.dx = 0; this.dy = 0;
+            this.nextDx = 0; this.nextDy = 0;
+            
+            this.history = [];
+            this.tailLength = 10;
+            this.gap = 8;
+            
+            this.isDead = false;
+            this.foods = []; 
+            this.lastFoodResetTime = 0;
+
+            this.wrapper = document.getElementById(`p${id}-area`);
+            this.resize();
+        }
+
+        resize() {
+            const rect = this.canvas.getBoundingClientRect();
+            this.canvas.width = rect.width;
+            this.canvas.height = rect.height;
+        }
+
+        reset() {
+            this.resize();
+            this.isDead = false;
+            this.score = 0;
+            this.updateScoreUI();
+            
+            this.x = this.canvas.width / 2;
+            this.y = this.canvas.height / 2 + (this.id === 1 ? 50 : -50);
+            
+            this.dx = 0; 
+            this.dy = -GAME_SPEED;
+            this.nextDx = 0;
+            this.nextDy = -GAME_SPEED;
+
+            this.history = [];
+            for(let i=0; i<this.tailLength * this.gap; i++) {
+                this.history.push({x: this.x, y: this.y + i});
+            }
+
+            this.lastFoodResetTime = Date.now();
+            this.spawnFoodProportional();
+            this.wrapper.style.backgroundColor = "rgba(255, 255, 255, 0.85)";
+        }
+
+        spawnFoodProportional() {
+            this.foods = [];
+            for(let i=0; i<3; i++) this.addFood(true);
+            for(let i=0; i<3; i++) this.addFood(false);
+        }
+
+        addFood(forcedType = null) {
+            const margin = 35;
+            const isHealthy = (forcedType !== null) ? forcedType : (Math.random() > 0.5);
+            const srcList = isHealthy ? SRC_MAKANAN_SEHAT : SRC_MAKANAN_TIDAK_SEHAT;
+            const src = srcList[Math.floor(Math.random() * srcList.length)];
+
+            this.foods.push({
+                x: margin + Math.random() * (this.canvas.width - margin*2),
+                y: margin + Math.random() * (this.canvas.height - margin*2),
+                img: createImage(src),
+                isHealthy: isHealthy
+            });
+        }
+
+        update() {
+            if (this.isDead) return;
+
+            const timeElapsed = Date.now() - this.lastFoodResetTime;
+            const percentageLeft = Math.max(0, 100 - (timeElapsed / FOOD_RESET_TIME * 100));
+            this.timerElem.style.width = percentageLeft + "%";
+
+            if (timeElapsed > FOOD_RESET_TIME) {
+                this.spawnFoodProportional();
+                this.showFloatText("Reset Makanan!", true);
+                this.lastFoodResetTime = Date.now();
+            }
+
+            if (this.dx === 0 && this.nextDx !== 0) { this.dx = this.nextDx; this.dy = 0; }
+            else if (this.dy === 0 && this.nextDy !== 0) { this.dx = 0; this.dy = this.nextDy; }
+
+            this.x += this.dx;
+            this.y += this.dy;
+
+            if (this.x < 0) this.x = this.canvas.width;
+            if (this.x > this.canvas.width) this.x = 0;
+            if (this.y < 0) this.y = this.canvas.height;
+            if (this.y > this.canvas.height) this.y = 0;
+
+            this.history.unshift({x: this.x, y: this.y});
+            const maxHistory = (this.tailLength + 2) * this.gap;
+            if (this.history.length > maxHistory) {
+                this.history.pop();
+            }
+
+            for (let i = this.gap * 3; i < this.history.length; i+=2) {
+                const seg = this.history[i];
+                if (!seg) break;
+                const dist = Math.hypot(this.x - seg.x, this.y - seg.y);
+                if (dist < SNAKE_SIZE/1.5) {
+                    this.die();
+                    break;
+                }
+            }
+
+            for (let i = 0; i < this.foods.length; i++) {
+                const f = this.foods[i];
+                const distFood = Math.hypot(this.x - f.x, this.y - f.y);
+                if (distFood < (SNAKE_SIZE/2 + FOOD_SIZE/2)) {
+                    this.eat(f, i);
+                    break;
+                }
+            }
+        }
+
+        eat(foodItem, index) {
+            const val = foodItem.isHealthy ? 10 : -5;
+            this.showFloatText(val > 0 ? "+"+val : val, foodItem.isHealthy);
+            this.score = Math.max(0, this.score + val);
+            this.updateScoreUI();
+
+            if (foodItem.isHealthy) {
+                this.tailLength += 1;
+            } else {
+                this.tailLength = Math.max(5, this.tailLength - 1);
+                this.wrapper.style.backgroundColor = "#e74c3c";
+                setTimeout(() => {
+                   if(!this.isDead) this.wrapper.style.backgroundColor = "rgba(255, 255, 255, 0.85)";
+                }, 200);
+            }
+            this.foods.splice(index, 1);
+            this.addFood(foodItem.isHealthy);
+        }
+
+        die() {
+            this.isDead = true;
+            this.showFloatText("OUCH!", false);
+            this.wrapper.style.backgroundColor = "#95a5a6";
+            checkGameOver();
+        }
+
+        draw() {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.foods.forEach(f => {
+                try {
+                    this.ctx.drawImage(f.img, f.x - FOOD_SIZE/2, f.y - FOOD_SIZE/2, FOOD_SIZE, FOOD_SIZE);
+                } catch(e) {
+                    this.ctx.fillStyle = f.isHealthy ? 'green' : 'red';
+                    this.ctx.beginPath();
+                    this.ctx.arc(f.x, f.y, 10, 0, Math.PI*2);
+                    this.ctx.fill();
+                }
+            });
+
+            for (let i = this.tailLength - 1; i >= 0; i--) {
+                const pos = this.history[i * this.gap];
+                if (!pos) continue;
+
+                if (i < this.tailLength - 1) {
+                    const prevPos = this.history[(i+1) * this.gap];
+                    if (prevPos && Math.hypot(pos.x - prevPos.x, pos.y - prevPos.y) > 100) {
+                        continue; 
+                    }
+                }
+
+                this.ctx.beginPath();
+                this.ctx.arc(pos.x, pos.y, SNAKE_SIZE/2, 0, Math.PI * 2);
+                
+                if (i === 0) {
+                    this.ctx.fillStyle = this.color;
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = "rgba(0,0,0,0.2)";
+                } else {
+                    this.ctx.fillStyle = this.id===1 ? '#5dade2' : '#ec7063';
+                    this.ctx.shadowBlur = 0;
+                }
+                
+                this.ctx.fill();
+                this.ctx.shadowBlur = 0; 
+                
+                if (i === 0) {
+                    this.ctx.fillStyle = "white";
+                    this.ctx.beginPath();
+                    this.ctx.arc(pos.x - 4, pos.y - 4, 3, 0, Math.PI*2);
+                    this.ctx.arc(pos.x + 4, pos.y - 4, 3, 0, Math.PI*2);
+                    this.ctx.fill();
+                }
+            }
+
+            if (this.isDead) {
+                this.ctx.fillStyle = "rgba(0,0,0,0.5)";
+                this.ctx.fillRect(0,0, this.canvas.width, this.canvas.height);
+            }
+        }
+
+        showFloatText(text, isGood) {
+            const el = document.createElement('div');
+            el.className = 'float-text';
+            el.innerText = text;
+            el.style.color = isGood ? '#27ae60' : '#c0392b';
+            el.style.fontSize = '24px';
+            el.style.left = this.x + 'px';
+            el.style.top = this.y + 'px';
+            this.wrapper.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        updateScoreUI() {
+            this.scoreElem.innerText = this.score;
+        }
+    }
+
+    function startGameSession() {
+        showScreen('game-screen');
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(e => console.log("Gagal memutar musik: ", e));
+
+        p1Data.name = document.getElementById('p1-name').value || "Player 1";
+        p2Data.name = document.getElementById('p2-name').value || "Player 2";
+
+        document.getElementById('p1-hud-name').innerText = p1Data.name;
+        document.getElementById('p1-hud-avatar').src = p1Data.avatar;
+        document.getElementById('p2-hud-name').innerText = p2Data.name;
+        document.getElementById('p2-hud-avatar').src = p2Data.avatar;
+
+        players = [
+            new Player(1, 'canvas1', '#2980b9', p1Data.name, p1Data.avatar),
+            new Player(2, 'canvas2', '#c0392b', p2Data.name, p2Data.avatar)
+        ];
+
+        players.forEach(p => {
+            p.resize();
+            p.reset();
+        });
+        
+        if (animationId) cancelAnimationFrame(animationId);
+        loop();
+    }
+
+    function loop() {
+        players.forEach(p => {
+            p.update();
+            p.draw();
+        });
+        if (players[0].isDead && players[1].isDead) return;
+        animationId = requestAnimationFrame(loop);
+    }
+
+    function checkGameOver() {
+        if (players[0].isDead && players[1].isDead) {
+            cancelAnimationFrame(animationId);
+            setTimeout(() => {
+                showGameOverScreen();
+            }, 1000);
+        }
+    }
+
+    function showGameOverScreen() {
+        const p1 = players[0];
+        const p2 = players[1];
+        
+        let text = "";
+        if (p1.score > p2.score) text = `${p1.name} Menang!`;
+        else if (p2.score > p1.score) text = `${p2.name} Menang!`;
+        else text = "Hasil Seri!";
+
+        document.getElementById('winner-text').innerText = text;
+        document.getElementById('end-avatar-1').src = p1.avatar;
+        document.getElementById('end-score-1').innerText = p1.score;
+        document.getElementById('end-avatar-2').src = p2.avatar;
+        document.getElementById('end-score-2').innerText = p2.score;
+
+        showScreen('gameover-screen');
+
+        bgMusic.pause(); 
+        winnerMusic.currentTime = 0;
+        winnerMusic.play().catch(e => console.log("Gagal sound winner: ", e));
+        
+        startFireworks(); 
+    }
+
+    function setDir(id, dir) {
+        const p = players[id-1];
+        if (!p || p.isDead) return;
+        const s = GAME_SPEED;
+        if (dir === 'up' && p.dy === 0) { p.nextDx = 0; p.nextDy = -s; }
+        if (dir === 'down' && p.dy === 0) { p.nextDx = 0; p.nextDy = s; }
+        if (dir === 'left' && p.dx === 0) { p.nextDx = -s; p.nextDy = 0; }
+        if (dir === 'right' && p.dx === 0) { p.nextDx = s; p.nextDy = 0; }
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (document.getElementById('game-screen').style.display === 'none') return;
+        if (e.key === 'w' || e.key === 'W') setDir(1, 'up');
+        if (e.key === 's' || e.key === 'S') setDir(1, 'down');
+        if (e.key === 'a' || e.key === 'A') setDir(1, 'left');
+        if (e.key === 'd' || e.key === 'D') setDir(1, 'right');
+        if (e.key === 'ArrowUp') setDir(2, 'up');
+        if (e.key === 'ArrowDown') setDir(2, 'down');
+        if (e.key === 'ArrowLeft') setDir(2, 'left');
+        if (e.key === 'ArrowRight') setDir(2, 'right');
+    });
+
+    window.addEventListener('resize', () => {
+        if(players.length > 0) players.forEach(p => p.resize());
+        resizeFwCanvas();
+    });
+
+    window.onload = function() {
+        initAvatarSetup();
+        
+        // Init Background awal
+        document.getElementById('game-bg').style.backgroundImage = `url('${BACKGROUND_MENU}')`;
+
+        // --- BARU: Init Audio Sources dari variabel konfigurasi ---
+        const audioBg = document.getElementById('bg-music');
+        const audioWin = document.getElementById('winner-music');
+        
+        if(audioBg && audioBg.querySelector('source')) {
+            audioBg.querySelector('source').src = MUSIC_GAMEPLAY;
+            audioBg.load(); // Reload audio element dengan source baru
+        }
+        if(audioWin && audioWin.querySelector('source')) {
+            audioWin.querySelector('source').src = MUSIC_WINNER;
+            audioWin.load();
+        }
+
+        showScreen('home-screen');
+    };
+
+</script>
+</body>
+</html>
